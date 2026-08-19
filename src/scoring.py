@@ -29,14 +29,16 @@ def append_forecast(engine_out: pd.DataFrame) -> pd.DataFrame:
     new = engine_out[["decision_date", "dt", "horizon", "pred_mw", "load_plan_mw"]].copy()
     new["dt"] = pd.to_datetime(new["dt"])
     if not master.empty:
-        exists = master.set_index(["dt", "horizon"]).index
-        new = new[~pd.MultiIndex.from_frame(new[["dt", "horizon"]]).isin(exists)]
+        # ayni (karar gunu, dt, horizon) tekrar gelirse ESKisini birlestirip guncelle;
+        # farkli karar gununun ayni hedef gunu (D+1 vs D+2) ayri satir kalir
+        exists = master.set_index(["decision_date", "dt", "horizon"]).index
+        new = new[~pd.MultiIndex.from_frame(new[["decision_date", "dt", "horizon"]]).isin(exists)]
     new["actual_mw"] = np.nan
     new["mape_hour"] = np.nan
     new["mae_mw"] = np.nan
     out = pd.concat([master, new[COLS]], ignore_index=True)
     out["dt"] = pd.to_datetime(out["dt"])
-    out = out.drop_duplicates(subset=["dt", "horizon"], keep="last").sort_values("dt")
+    out = out.drop_duplicates(subset=["decision_date", "dt", "horizon"], keep="last").sort_values("dt")
     store_master(out)
     return out
 
