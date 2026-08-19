@@ -182,19 +182,20 @@ def make_row(P: pd.DataFrame, wnat: pd.DataFrame, wdyn: pd.DataFrame, dayfrac: p
     for v in C.OM_VARS + ["HDD", "CDD"]:
         if v in wn.columns:
             X[v] = wn[v].to_numpy()
-    wd = wdyn.reindex(idx)
-    for c in wd.columns:
-        X[c] = wd[c].to_numpy()
-    cwi = cw.reindex(idx)
-    X["temp_spread_maxmin"] = (cwi.max(axis=1) - cwi.min(axis=1)).to_numpy()
-    X["temp_std_10c"] = cwi.std(axis=1).to_numpy()
-    X["urban_temp"] = seg_urban.reindex(idx).to_numpy()
-    X["industrial_temp"] = seg_ind.reindex(idx).to_numpy()
-    h = X["hour"]
-    X["commercial_CDD_x_workhour"] = X["CDD"] * ((h >= 9) & (h <= 18)).astype(int)
-    X["industrial_CDD_x_workday"] = X["CDD"] * (X["weekday"] < 5).astype(int)
     X["temp2"] = X["temperature_2m"] ** 2
+    h = X["hour"]
     X["temp_hour"] = X["temperature_2m"] * np.cos(2 * np.pi * h / 24)
+    if cont:   # MANYAK feature'lar yalnizca deneysel (cont=True) — regulasyon gerekir, uretim kullanmaz
+        wd = wdyn.reindex(idx)
+        for c in wd.columns:
+            X[c] = wd[c].to_numpy()
+        cwi = cw.reindex(idx)
+        X["temp_spread_maxmin"] = (cwi.max(axis=1) - cwi.min(axis=1)).to_numpy()
+        X["temp_std_10c"] = cwi.std(axis=1).to_numpy()
+        X["urban_temp"] = seg_urban.reindex(idx).to_numpy()
+        X["industrial_temp"] = seg_ind.reindex(idx).to_numpy()
+        X["commercial_CDD_x_workhour"] = X["CDD"] * ((h >= 9) & (h <= 18)).astype(int)
+        X["industrial_CDD_x_workday"] = X["CDD"] * (X["weekday"] < 5).astype(int)
     if horizon == 2 and d1_pred is not None:
         X["pred_d1"] = pd.Series(idx, index=idx).map(lambda t: d1_pred.get(t - pd.Timedelta(hours=24))).to_numpy()
     return X

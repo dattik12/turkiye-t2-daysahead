@@ -24,10 +24,11 @@ def predict(m, feats: list, X: pd.DataFrame) -> np.ndarray:
 
 def train_engine(P, wnat, wdyn, dayfrac, cw, seg_urban, seg_ind, cons,
                  train_idx, horizon, d1_pred: pd.Series | None = None):
-    """Horizon basina BASE + CONT modellerini egit. Donen dict roadmap -> (model, feats)."""
+    """Horizon basina BASE (+ opsiyonel CONT/manyak) modellerini egit. Donen dict cont -> (model, feats)."""
     from .features import make_row
+    conts = [False] if not getattr(C, "USE_CONT", False) else [False, True]
     out = {}
-    for cont in (False, True):
+    for cont in conts:
         F = make_row(P, wnat, wdyn, dayfrac, cw, seg_urban, seg_ind,
                      train_idx, horizon, d1_pred=d1_pred, cont=cont)
         F["target"] = cons.reindex(train_idx)
@@ -39,10 +40,11 @@ def train_engine(P, wnat, wdyn, dayfrac, cw, seg_urban, seg_ind, cons,
 
 def predict_pair(models, P, wnat, wdyn, dayfrac, cw, seg_urban, seg_ind,
                  idx, horizon, d1_pred: pd.Series | None = None) -> np.ndarray:
-    """BASE + CONT ortalamasi (ensemble)."""
+    """BASE (+ CONT) ortalamasi; USE_CONT=False ise yalnizca BASE."""
     from .features import make_row
+    conts = sorted(models.keys())
     preds = []
-    for cont in (False, True):
+    for cont in conts:
         m, feats = models[cont]
         X = make_row(P, wnat, wdyn, dayfrac, cw, seg_urban, seg_ind,
                      idx, horizon, d1_pred=d1_pred, cont=cont)

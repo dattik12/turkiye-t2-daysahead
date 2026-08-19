@@ -47,6 +47,7 @@ CITIES = [
 
 # --- Model ---
 TRAIN_DAYS = 1000          # ~2.7 yil son pencere (5y daha iyi degildi -> kanitli)
+USE_CONT = False           # uretim = BASE (v4.3); manyak CONT deneysel (regulasyon ister)
 RETRAIN_EVERY = 7          # gunluk job haftalik retrain yapar? -> gercek zamanli her gun 1/7 sıklık olur
 LGB_PARAMS = dict(
     n_estimators=1500, learning_rate=0.05, num_leaves=95,
