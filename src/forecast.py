@@ -41,16 +41,17 @@ class Engine:
         if target_end > last_nat:
             s = (last_nat + pd.Timedelta(days=1)).date().isoformat()
             e = target_end.date().isoformat()
+            # ulusal forecast basarisiz olursa RUN FAIL olur (degrade tahmin sessiz commit olmaz)
+            nat_fc = D.forecast_weather(s, e)
+            nat = pd.concat([nat, nat_fc])
+            nat = nat[~nat.index.duplicated(keep="last")].sort_index()
             try:
-                nat_fc = D.forecast_weather(s, e)
-                nat = pd.concat([nat, nat_fc])
-                nat = nat[~nat.index.duplicated(keep="last")].sort_index()
                 cites_fc = D.forecast_cities(s, e)
                 cw2 = self._pivot_temp(cites_fc)
                 cw = pd.concat([cw, cw2])
                 cw = cw[~cw.index.duplicated(keep="last")].sort_index()
             except Exception as ex:
-                print(f"  forecast hava uzatma atlandi: {str(ex)[:80]}")
+                print(f"  UYARI: sehir forecast atlandi ({str(ex)[:60]}); ulusal ile devam")
         # gerekli satirlari doldur
         span = pd.date_range(nat.index.min(), max(nat.index.max(), target_end), freq="h")
         nat = nat.reindex(span).ffill()

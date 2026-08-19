@@ -82,14 +82,16 @@ def om_fetch(url: str, lat: float, lon: float, s: str, e: str, model: str = C.OM
               f"&hourly=" + ",".join(C.OM_VARS) +
               f"&models={model}&timezone=Europe/Istanbul&cell_selection=nearest")
     req = urllib.request.Request(f"{url}?{params}", headers={"User-Agent": "Mozilla/5.0"})
-    for i in range(4):
+    for i in range(6):
         try:
-            with urllib.request.urlopen(req, timeout=90) as r:
+            with urllib.request.urlopen(req, timeout=120) as r:
                 d = json.load(r)
             assert "hourly" in d, str(d)[:150]
             return d["hourly"]
         except Exception as ex:
-            time.sleep(8 * (2 ** i))
+            wait = 8 * (2 ** i) + (i * 3)   # +jitter; rate-limit icin daha uzun geri cekilme
+            print(f"  [om {url[:30]}..{s} {lat:.1f}] hata {str(ex)[:60]} — {wait}s")
+            time.sleep(wait)
     raise RuntimeError("om_fetch basarisiz")
 
 
@@ -174,10 +176,16 @@ def forecast_cities(s: str, e: str) -> pd.DataFrame:
     """Hedef gunler icin sehir bazli CANLI forecast (uzun frame)."""
     frames = []
     for c in C.CITIES:
-        h = om_fetch(C.OM_FC_URL, c["lat"], c["lon"], s, e)
-        f = pd.DataFrame({v: h[v] for v in C.OM_VARS}, index=pd.to_datetime(h["time"]))
-        f["city"] = c["city"]; f["lat"] = c["lat"]; f["lon"] = c["lon"]; f["pop"] = c["pop"]
-        frames.append(f)
+        try:
+            h = om_fetch(C.OM_FC_URL, c["lat"], c["lon"], s, e)
+            f = pd.DataFrame({v: h[v] for v in C.OM_VARS}, index=pd.to_datetime(h["time"]))
+            f["city"] = c["city"]; f["lat"] = c["lat"]; f["lon"] = c["lon"]; f["pop"] = c["pop"]
+            frames.append(f)
+            time.sleep(0.6)  # rate-limit tamponu
+        except Exception as ex:
+            print(f"  [forecast_cities {c['city']}] atlandi: {str(ex)[:60]}")
+    if len(frames) < 8:
+        raise RuntimeError(f"forecast_cities yetersiz sehir: {len(frames)}")
     return pd.concat(frames)
 
 
