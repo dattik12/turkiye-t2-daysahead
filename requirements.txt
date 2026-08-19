@@ -1,0 +1,10 @@
+# Python >=3.10
+pandas>=2.0
+numpy<2                 # LGBM 4.5.0 native crash'i numpy>=2 ile oluyor (Windows'ta dogrulandi)
+lightgbm==4.5.0
+scikit-learn>=1.3
+pyarrow>=14
+openpyxl>=3.1
+urllib3>=2.6
+pytz>=2024.1
+eptr2>=1.3.8            # EPIAS Seffaflik Platformu client

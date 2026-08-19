@@ -1,0 +1,59 @@
+name: daily-t2-forecast
+
+# 03:00 Turkiye = 00:00 UTC. Her gun calisir.
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:      # elle de tetiklenebilir
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-t2
+  cancel-in-progress: false
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install numpy<2 lightgbm==4.5.0   # teyit: stabil combo
+
+      - name: Write EPIAS credentials (.env)
+        shell: bash
+        run: |
+          printf 'EPTR_USERNAME=%s\nEPTR_PASSWORD=%s\n' \
+            "$EPTR_USERNAME" "$EPTR_PASSWORD" > .env
+          chmod 600 .env
+        env:
+          EPTR_USERNAME: ${{ secrets.EPTR_USERNAME }}
+          EPTR_PASSWORD: ${{ secrets.EPTR_PASSWORD }}
+
+      - name: Run daily pipeline
+        run: python -m scripts.daily_run
+
+      - name: Commit results
+        shell: bash
+        run: |
+          git config user.name  "daily-bot"
+          git config user.email "daily-bot@users.noreply.github.com"
+          git add -A data
+          git diff --cached --quiet && echo "degisiklik yok" || {
+            git commit -m "daily: $(date -u +%F) forecast + mape"
+            git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:${GITHUB_REF#refs/heads/}
+          }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
