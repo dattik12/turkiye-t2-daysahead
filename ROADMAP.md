@@ -5,7 +5,8 @@ Modeli adim adim gelistirme yolu (kanit-odakli; her madde backtest ile dogrulani
 ## Durum: pipeline CANLI (v1)
 - [x] EPIAS gunluk cekim @03:00 TR (rt-cons + load-plan) + veri seti guncelleme
 - [x] OpenMeteo ECMWF IFS hava (tarihi + hedef forecast), 10 sehir nufus agirlikli
-- [x] T+1/T+2 ayri LightGBM + ensemble (BASE v4.3 + CONT v5.2)
+- [x] T+1/T+2 ayri LightGBM (uretim = BASE v4.3, kanitli) + CONT v5.2 manyaklari deneysel/regulasyonlu
+      (`USE_CONT=False`; A/B'de naif ekleme generalize edemedi -> ROADMAP orta vade Regularization)
 - [x] D+2'de lag24'suz, leak-free, recursive-yok
 - [x] Gunluk MAPE logu + TEIAS load-plan kiyasi
 - [x] Simule backtest (2025→ bugün) CSV'i
