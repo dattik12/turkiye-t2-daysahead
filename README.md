@@ -19,27 +19,45 @@ Her gece **03:00 (Türkiye)** [EPİAŞ Şeffaflık Platformu](https://seffaflik.
   6. geçmiş tahminleri gerçekleşenle eşleştir → data/results/mape_history.csv
 ```
 
-## Model (v4.3 + v5.2 ensemble)
+## Model
 
 - Her ufuk için **ayrı LightGBM** (D+1 ve D+2 modelleri).
 - **D+2 modeli lag24 KULLANMAZ** (D+1 yaşanmadı) → recursive olmadan, dağılım kaymasız.
-- **BASE model** (v4.3): elle ayarlı bayram paketi — `is_arife`, `is_holiday`, `prev_week_holiday`,
-  `next_day_holiday`, `days_to_holiday`, `ramadan` + lag/rolling/günlük özetler.
-- **CONT model** (v5.2): BASE + `same_hour_median_3d/7d`, `daylight_fraction`, spatial sıcaklık
-  yayılımı, `wet_bulb`, `temp_anomaly_30d`, segment etkileşimleri.
-- Ensemble: iki modelin ortalaması. Haftalık yeniden eğitim ("yakın veriyle adaptasyon" dersi).
+- **Üretim modeli = BASE (v4.3, kanıtlanmış):** elle ayarlı bayram paketi — `is_arife`,
+  `is_holiday`, `prev_week_holiday`, `next_day_holiday`, `days_to_holiday`, `ramadan` +
+  lag/rolling/günlük özetler + OpenMeteo hava (10 şehir nüfus-ağırlıklı) + HDD/CDD + `daylight_fraction`.
+- **Deneysel CONT (v5.2 manyaklar):** `same_hour_median_3d/7d`, spatial sıcaklık, `wet_bulb`,
+  `temp_anomaly_30d`, segment CDD etkileşimleri. A/B'de NAİF eklenince generalize edemediğini
+  gösterdi → regülasyon olana dek üretimde KAPALI (`USE_CONT=False`). `ROADMAP.md`'de hedef.
+- Haftalık yeniden eğitim ("yakın veriyle adaptasyon" dersi; 3-günlük da kazandırmadı → haftalık yeterli).
 
-### Ölçülen performans (üretim protokolü backtest)
+### 📊 Ölçülen performans — üretim protokolü backtest (2025-01-01 → 2026-08-18, 593 karar günü)
 
-| Senaryo | MAPE |
-|---|---|
-| T+1 (D+1) | ~%1.7 |
-| T+2 (D+2) | ~%2.2–2.4 |
-| D+2 bayram-dışı | ~%2.0 |
-| D+2 Kurban penceresi | ~%4 |
-| TEİAŞ load-plan (D+1, benchmark) | ~%2.8 |
+| Senaryo | MAPE | MAE |
+|:---|---:|---:|
+| **T+1 (D+1)** | **%1.63** | 649 MW |
+| **T+2 (D+2)** | **%2.27** | 910 MW |
+| D+2 bayram-dışı | %2.15 | ~870 MW |
+| D+2 bayram/kurban penceresi | %4.50 | — |
+| TEİAŞ load-plan (D+1, benchmark) | **%3.01** | — |
 
-Ayrıntılar: `ROADMAP.md` ve `data/results/backtest_sim_2025_2026.csv`.
+Tam saatlik veri: `data/results/backtest_sim_2025_2026.csv` (28.464 satır).
+Metodoloji yerine sayılara odaklandık; deneysel CONT/manyak hattı `ROADMAP.md`'de.
+
+### 📈 Canlı MAPE (bugünden itibaren)
+
+Her gün 03:00'te üretilen tahminler `data/results/forecast_results.csv`'e yazılır; gerçekleşen
+veri geldikçe eşleştirilir ve `data/results/mape_history.csv`'e günlük MAPE olarak loglanır.
+Bu tablo **ilk gerçekleşenleri geldiğinde otomatik dolar** (ör. 19 Ağustos 03:00'te yapılan
+tahminin gerçekleşeni 19 Ağustos akşamı belli olur, 20 Ağustos 03:00'teki koşuda loglanır).
+
+| Karar günü | Hedef gün | Ufuk | MAPE |
+|:--|:--|:--:|--:|
+| 2026-08-18 | 2026-08-19 | D+1 | _gerçekleşen bekleniyor_ |
+| 2026-08-18 | 2026-08-20 | D+2 | _gerçekleşen bekleniyor_ |
+
+> Canlı MAPE, backtestin (geçmişte) garantisi değil; bugün itibarıyla her gün işleyen gerçek
+> izlemdir. `mape_history.csv` çoğaldıkça bu tablo canlı sayılarla dolacak.
 
 ## Repo yapısı
 
