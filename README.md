@@ -22,6 +22,20 @@ Her gece **03:00 (Türkiye)** 🇹🇷 EPİAŞ'tan bir önceki günün tüketimi
 
 > T+1'de resmi TEİAŞ planını **~1.4 puan** geçiyoruz. Saatlik detay: `data/results/backtest_sim_2025_2026.csv`
 
+### 📤 FTP modeli için çıktılar (2025 → bugün)
+
+Başka ekiplerin/model eğitimlerinin kullanabileceği temiz dosyalar (`data/exports/`):
+
+| Dosya | İçerik | Satır |
+|:--|:--|--:|
+| `backtest_t1_t2_2025_2026.csv` | Saat başına tek satır: gerçekleşen + T+1 + T+2 + TEİAŞ planı + METİK | 14.232 |
+| `backtest_daily_summary_2025_2026.csv` | Günlük özet: ortalamalar + günlük MAPE | 594 |
+
+- T+1 tahmini = **bir gün önceki** kararın tahmini; T+2 = **iki gün önceki** kararın tahmini.
+- `gerceklesen_mw` iki ufuk için aynı → kendi T+1 ve T+2 modelini tek gerçekle birlikte eğitebilirler.
+- `teias_plan_mw` rakip olarak karşılaştırma için.
+- Yeniden üretim: `python -m scripts.export_backtest`
+
 ### 🔴 Canlı MAPE (bugünden itibaren)
 
 Her sabah 03:00'te yapılan tahmin, o günün gerçekleşeni belli olunca `mape_history.csv`'e düşer.
@@ -61,9 +75,9 @@ feature'lar (`ROADMAP.md`) regülasyon ister, şimdilik üretimde kapalı.
 
 ```
 src/        config · data (EPİAŞ+OpenMeteo) · features · model · forecast · scoring
-scripts/    bootstrap (ilk kurulum) · daily_run (03:00) · backtest_sim
+scripts/    bootstrap (ilk kurulum) · daily_run (03:00) · backtest_sim · export_backtest
 .github/    daily.yml — cron 03:00 TR + otomatik commit
-data/       dataset/ (2016→ bugün) · weather/ · results/ (forecast + MAPE + backtest)
+data/       dataset/ (2016→ bugün) · weather/ · results/ (forecast + MAPE + backtest) · exports/ (FTP çıktıları)
 ```
 
 ## 🚀 Kurulum
