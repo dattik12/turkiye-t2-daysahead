@@ -24,21 +24,23 @@ def store_master(df: pd.DataFrame) -> None:
 
 
 def append_forecast(engine_out: pd.DataFrame) -> pd.DataFrame:
-    """Yeni tahmin satirlarini master'a ekle (eger ayni dt/horizon yoksa)."""
+    """Yeni tahmin satirlarini master'a YAZAR (upsert).
+    Ayni (decision_date, dt, horizon) tekrar gelirse ESKİ satir silinip yenisi yazilir.
+    Farkli karar gunlarinin ayni hedef gunu (D+1 vs D+2) ayri satir olarak korunur."""
     master = load_master()
     new = engine_out[["decision_date", "dt", "horizon", "pred_mw", "load_plan_mw"]].copy()
     new["dt"] = pd.to_datetime(new["dt"])
+    key = ["decision_date", "dt", "horizon"]
     if not master.empty:
-        # ayni (karar gunu, dt, horizon) tekrar gelirse ESKisini birlestirip guncelle;
-        # farkli karar gununun ayni hedef gunu (D+1 vs D+2) ayri satir kalir
-        exists = master.set_index(["decision_date", "dt", "horizon"]).index
-        new = new[~pd.MultiIndex.from_frame(new[["decision_date", "dt", "horizon"]]).isin(exists)]
+        old_key = master.set_index(key).index
+        new_key = new.set_index(key).index
+        master = master[~old_key.isin(new_key)]   # eski ayni-key satirlari cikar (upsert)
     new["actual_mw"] = np.nan
     new["mape_hour"] = np.nan
     new["mae_mw"] = np.nan
     out = pd.concat([master, new[COLS]], ignore_index=True)
     out["dt"] = pd.to_datetime(out["dt"])
-    out = out.drop_duplicates(subset=["decision_date", "dt", "horizon"], keep="last").sort_values("dt")
+    out = out.drop_duplicates(subset=key, keep="last").sort_values("dt")
     store_master(out)
     return out
 
