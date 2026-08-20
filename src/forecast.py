@@ -8,8 +8,8 @@ from . import config as C
 from . import data as D
 from . import features as F
 from . import models as M
-from . import models_ensemble as ME
-from . import stacking as ST
+# Lazy: models_ensemble/stacking sadece ensemble (len>1) gerektiginde yuklenir,
+# boylece Actions runner'i yalnizca lightgbm ile calisabilir (xgboost/catboost zorunlu degil).
 
 
 def to_local(df):
@@ -97,7 +97,12 @@ class Engine:
         Peff = P
 
         use_multi = len(getattr(C, "ENSEMBLE_MODELS", ["lgbm"])) > 1
-        TE = ME if use_multi else M
+        if use_multi:
+            from . import models_ensemble as ME
+            from . import stacking as ST
+            TE = ME
+        else:
+            TE = M
         if models_cache is None:
             if use_multi:
                 m1 = TE.train_engine_multi(Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, self.cons["rt_cons"], train_idx, 1)
