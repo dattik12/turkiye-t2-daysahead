@@ -55,9 +55,21 @@ def append_consumption(cons: pd.DataFrame, start: str, end: str) -> pd.DataFrame
         cons[col] = cons[col].astype("float64") if col in cons else np.nan
         cons = cons.combine_first(fr) if fr.shape[0] else cons
         cons.loc[fr.index, col] = fr[col]
-    # tam grid + takvim
+    # tam grid + takvim -- leak guard: kispi gelecek gunu trim et
     if not cons.index.is_monotonic_increasing:
         cons = cons.sort_index()
+    if "rt_cons" in cons.columns:
+        y_tmp = cons["rt_cons"].dropna()
+        if len(y_tmp):
+            days_tmp = y_tmp.groupby(y_tmp.index.normalize()).size()
+            full_tmp = days_tmp[days_tmp == 24]
+            if len(full_tmp):
+                last_full_tmp = full_tmp.index.max()
+                # keep future load_plan rows (for forecast comparison), but blank incomplete rt_cons
+                mask_future = cons.index.normalize() > last_full_tmp.normalize()
+                cons.loc[mask_future, "rt_cons"] = float("nan")
+                # drop only wholly empty trailing rows (both rt_cons and load_plan NaN)
+                cons = cons[~(cons["rt_cons"].isna() & cons["load_plan"].isna())].copy() if "load_plan" in cons.columns else cons.copy()
     os.makedirs(C.DATASET_DIR, exist_ok=True)
     cons.to_parquet(C.CONSUMPTION_PARQUET)
     return cons[~cons.index.duplicated(keep="last")].sort_index()

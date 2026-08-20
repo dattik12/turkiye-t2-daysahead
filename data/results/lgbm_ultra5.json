@@ -1,0 +1,30 @@
+{
+  "H1": {
+    "mape": 2.015741622086838,
+    "params": {
+      "n_estimators": 500,
+      "learning_rate": 0.03488360570031919,
+      "num_leaves": 92,
+      "max_depth": 7,
+      "colsample_bytree": 0.7366114704534336,
+      "subsample": 0.848553073033381,
+      "min_child_samples": 16,
+      "reg_alpha": 0.45466020103939103,
+      "reg_lambda": 0.12938999080000846
+    }
+  },
+  "H2": {
+    "mape": 2.818003747494578,
+    "params": {
+      "n_estimators": 500,
+      "learning_rate": 0.03488360570031919,
+      "num_leaves": 92,
+      "max_depth": 7,
+      "colsample_bytree": 0.7366114704534336,
+      "subsample": 0.848553073033381,
+      "min_child_samples": 16,
+      "reg_alpha": 0.45466020103939103,
+      "reg_lambda": 0.12938999080000846
+    }
+  }
+}

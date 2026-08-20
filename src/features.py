@@ -54,10 +54,34 @@ def calendar_cols(idx: pd.DatetimeIndex) -> pd.DataFrame:
     rel_set, off_set = set(rel), set(off)
     arife_set = set((pd.to_datetime(list(HOLIDAY_DATES)) - pd.Timedelta(days=1)).date)
     after_set = set((pd.to_datetime(list(HOLIDAY_DATES)) + pd.Timedelta(days=1)).date)
+    # EDA tail: bayram block end +1 and +2 still holiday-like (2026-03-23, 2025-04-03 leak)
+    tail_days = getattr(C, "HOLIDAY_TAIL_DAYS", 2)
+    tail_set = set()
+    for _hd in pd.to_datetime(list(HOLIDAY_DATES)).date:
+        for k in range(2, 2+tail_days):
+            cand = (pd.Timestamp(_hd) + pd.Timedelta(days=k)).date()
+            # if not already holiday/arife/after, mark as tail
+            if cand not in rel_set and cand not in arife_set and cand not in after_set:
+                tail_set.add(cand)
+    # bridge: single workday between holiday block and weekend (EDA 6.1)
+    bridge_set = set()
+    hol_all = rel_set | off_set | arife_set  # arife is work-effectively holiday
+    for _d in pd.date_range("2024-01-01", "2029-01-01", freq="D"):
+        dd = _d.date()
+        if dd in hol_all or dd.weekday() >= 5:
+            continue
+        prev = (_d - pd.Timedelta(days=1)).date()
+        nxt = (_d + pd.Timedelta(days=1)).date()
+        if (prev in hol_all and nxt.weekday() >= 5) or (prev.weekday() >= 5 and nxt in hol_all):
+            bridge_set.add(dd)
     d["is_holiday"] = ds.isin(rel_set).astype(np.int8).to_numpy()
     d["is_official"] = ds.isin(off_set).astype(np.int8).to_numpy()
     d["is_arife"] = ds.isin(arife_set).astype(np.int8).to_numpy()
     d["is_after_holiday"] = ds.isin(after_set).astype(np.int8).to_numpy()
+    d["is_holiday_tail"] = ds.isin(tail_set).astype(np.int8).to_numpy()
+    d["is_bridge"] = ds.isin(bridge_set).astype(np.int8).to_numpy()
+    # combined soft signal: any holiday-effect day (bayram/arife/after/tail/bridge/official)
+    d["is_holiday_effect"] = ((d["is_holiday"] | d["is_arife"] | d["is_after_holiday"] | d["is_holiday_tail"] | d["is_bridge"] | d["is_official"]) ).astype(np.int8).to_numpy()
     d["prev_week_holiday"] = ds.map(lambda x: (x - pd.Timedelta(days=7)) in (rel_set | off_set)).astype(np.int8).to_numpy()
     d["prev_day_holiday"] = ds.map(lambda x: (x - pd.Timedelta(days=1)) in (rel_set | off_set)).astype(np.int8).to_numpy()
     d["next_day_holiday"] = ds.map(lambda x: (x + pd.Timedelta(days=1)) in (rel_set | off_set)).astype(np.int8).to_numpy()

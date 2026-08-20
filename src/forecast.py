@@ -8,6 +8,8 @@ from . import config as C
 from . import data as D
 from . import features as F
 from . import models as M
+from . import models_ensemble as ME
+from . import stacking as ST
 
 
 def to_local(df):
@@ -85,24 +87,50 @@ class Engine:
         train_idx = pd.date_range(train_cut, decision_date - pd.Timedelta(hours=1), freq="h")
         days1 = pd.date_range(f"{d1} 00:00", f"{d1} 23:00", freq="h")
         days2 = pd.date_range(f"{d2} 00:00", f"{d2} 23:00", freq="h")
+        # --- FIX: extend P to target so future lag/roll lookup works (was NaN -> tree fallback) ---
+        y_ext = self.cons["rt_cons"].reindex(pd.date_range(self.cons.index.min(), target_end, freq="h"))
+        P = F.precompute(y_ext)
+        # ffill forward-fill for roll/day aggregates that are NaN for future hours (decision-time known)
+        for c in [cc for cc in P.columns if cc.startswith("roll") or cc.startswith("day_") or cc.startswith("samehr")]:
+            P[c] = P[c].ffill()
+        # keep self.P for back-compat but use extended P for all train/predict
+        Peff = P
 
+        use_multi = len(getattr(C, "ENSEMBLE_MODELS", ["lgbm"])) > 1
+        TE = ME if use_multi else M
         if models_cache is None:
-            m1 = M.train_engine(self.P, nat, wdyn, dayfrac, cw, seg_urban, seg_ind,
-                                self.cons["rt_cons"], train_idx, 1)
-            p1 = M.predict_pair(m1, self.P, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days1, 1)
-            # D+1 tahmini (t-24h) -> D+2 EGITIMINE feature
-            d1_tr = pd.Series(M.predict_pair(m1, self.P, nat, wdyn, dayfrac, cw, seg_urban, seg_ind,
-                                             train_idx - pd.Timedelta(hours=24), 1), index=train_idx)
-            m2 = M.train_engine(self.P, nat, wdyn, dayfrac, cw, seg_urban, seg_ind,
-                                self.cons["rt_cons"], train_idx, 2, d1_pred=d1_tr)
+            if use_multi:
+                m1 = TE.train_engine_multi(Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, self.cons["rt_cons"], train_idx, 1)
+                p1_dict = TE.predict_multi(m1, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days1, 1)
+                p1 = np.mean(list(p1_dict.values()), axis=0) if len(p1_dict) > 1 else list(p1_dict.values())[0]
+                # D+1 tahmini for D+2 training: use simple avg per hour
+                d1_tr_vals = TE.predict_multi(m1, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, train_idx - pd.Timedelta(hours=24), 1)
+                d1_tr = pd.Series(np.mean(list(d1_tr_vals.values()), axis=0) if len(d1_tr_vals)>1 else list(d1_tr_vals.values())[0], index=train_idx)
+                m2 = TE.train_engine_multi(Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, self.cons["rt_cons"], train_idx, 2, d1_pred=d1_tr)
+            else:
+                m1 = M.train_engine(Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, self.cons["rt_cons"], train_idx, 1)
+                p1 = M.predict_pair(m1, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days1, 1)
+                d1_tr = pd.Series(M.predict_pair(m1, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, train_idx - pd.Timedelta(hours=24), 1), index=train_idx)
+                m2 = M.train_engine(Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, self.cons["rt_cons"], train_idx, 2, d1_pred=d1_tr)
         else:
             m1, m2, _ = models_cache
-            p1 = M.predict_pair(m1, self.P, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days1, 1)
+            if use_multi and isinstance(m1, dict) and "lgbm" in m1:
+                p1_dict = TE.predict_multi(m1, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days1, 1)
+                p1 = np.mean(list(p1_dict.values()), axis=0) if len(p1_dict) > 1 else list(p1_dict.values())[0]
+            else:
+                p1 = M.predict_pair(m1, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days1, 1)
 
-        # D+2 INFERENCE feed: bugunku D+1 tahmini (karar aninda bilinir) — training ile tutarli
         d1_feed = pd.Series(p1, index=days1)
-        p2 = M.predict_pair(m2, self.P, nat, wdyn, dayfrac, cw, seg_urban, seg_ind,
-                            days2, 2, d1_pred=d1_feed)
+        if use_multi and isinstance(m2, dict) and "lgbm" in m2:
+            p2_dict = ME.predict_multi(m2, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days2, 2, d1_pred=d1_feed)
+            # optional stacking if weights exist
+            w = ST.load_weights()
+            if w is not None:
+                p2 = ST.apply_stacking(p2_dict, w, 2)
+            else:
+                p2 = np.mean(list(p2_dict.values()), axis=0) if len(p2_dict) > 1 else list(p2_dict.values())[0]
+        else:
+            p2 = M.predict_pair(m2, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days2, 2, d1_pred=d1_feed)
 
         out = pd.DataFrame({"dt": days1.append(days2),
                             "pred_mw": np.concatenate([p1, p2]),

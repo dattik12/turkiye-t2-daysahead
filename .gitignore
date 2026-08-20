@@ -1,4 +1,4 @@
-# Zaman serisi ciktilarini/parquet'leri versiyon disi birakmiyoruz: veri seti ve sonuclar
+# Zaman serisi ciktilarini/parquet'leri versiyon disi birakmıyoruz: veri seti ve sonuclar
 # repo'da takip EDILIYOR (gunluk job bunlari commit eder). Sadece gecici artiklari gizle.
 __pycache__/
 *.pyc
@@ -9,3 +9,16 @@ __pycache__/
 data/dataset/tmp_*.parquet
 data/weather/tmp_*.parquet
 *.log
+
+# -- scratch / deney dosyalari (PTY/tuning) -- versiyon disi
+_*.py
+_*.log
+_*.csv
+experiments/
+catboost_info/
+data/results/xgb_cache.pkl
+data/results/xgb_log.txt
+data/results/xgb_tuning*.py
+data/results/*_ultra*.py
+lgbm_*.py
+lgbm_*.log
