@@ -12,12 +12,12 @@ Her gece **03:00 (Türkiye)** 🇹🇷 EPİAŞ'tan bir önceki günün tüketimi
 
 ---
 
-## 📊 Sonuçlar · Backtest 2025-01-01 → 2026-08-18 (593 karar günü, saatlik 14.232 nokta)
+## 📊 Sonuçlar · Backtest 2025-01-01 → 2026-08-18 (597 karar günü, saatlik 14.280 nokta)
 
 | Ufuk | MAPE | MAE | Saatlerin payı |
 |:---|---:|---:|:---|
-| **T+1** | **%1.63** | 649 MW | %72,6'sı ±%2 bandında |
-| **T+2** | **%2.27** | 910 MW | %74,4'ü ±%3 bandında |
+| **T+1** | **%1.68** | 670 MW | %72,2'si ±%2 bandında |
+| **T+2** | **%2.26** | 908 MW | %75,6'sı ±%3 bandında |
 | T+2 bayram-dışı | %2.15 | — | — |
 | T+2 Kurban/bayram | %4.50 | — | — |
 | 🏛️ TEİAŞ load-plan (T+1, rakip) | **%3.01** | — | — |
@@ -31,7 +31,7 @@ Her gece **03:00 (Türkiye)** 🇹🇷 EPİAŞ'tan bir önceki günün tüketimi
 
 | Dosya | İçerik | Satır |
 |:--|:--|--:|
-| `backtest_t1_t2_2025_2026.csv` | Saat başına tek satır: gerçekleşen + T+1 + T+2 + TEİAŞ planı | 14.232 |
+| `backtest_t1_t2_2025_2026.csv` | Saat başına tek satır: gerçekleşen + T+1 + T+2 + TEİAŞ planı | 14.280 |
 | `backtest_daily_summary_2025_2026.csv` | Günlük özet: ortalamalar + günlük MAPE | 594 |
 
 - `t1_forecast_mw` = bir gün önceki kararın tahmini; `t2_forecast_mw` = iki gün önceki kararın tahmini.
