@@ -28,7 +28,10 @@ def append_forecast(engine_out: pd.DataFrame) -> pd.DataFrame:
     Ayni (decision_date, dt, horizon) tekrar gelirse ESKİ satir silinip yenisi yazilir.
     Farkli karar gunlarinin ayni hedef gunu (D+1 vs D+2) ayri satir olarak korunur."""
     master = load_master()
+    # decision_date hijyeni: her zaman 'YYYY-MM-DD' string (upsert anahtari tutarli olsun)
+    master["decision_date"] = pd.to_datetime(master["decision_date"]).dt.strftime("%Y-%m-%d")
     new = engine_out[["decision_date", "dt", "horizon", "pred_mw", "load_plan_mw"]].copy()
+    new["decision_date"] = pd.to_datetime(new["decision_date"]).dt.strftime("%Y-%m-%d")
     new["dt"] = pd.to_datetime(new["dt"])
     key = ["decision_date", "dt", "horizon"]
     if not master.empty:

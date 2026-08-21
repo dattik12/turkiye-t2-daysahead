@@ -26,11 +26,13 @@ def main():
         cons = D.append_consumption(cons, "2016-01-01",
                                     (today + pd.Timedelta(days=1)).date().isoformat())
     else:
-        last = cons.index.max()
-        if last.normalize() < today - pd.Timedelta(days=1):
-            cons = D.append_consumption(cons,
-                                        (last.normalize() + pd.Timedelta(days=1)).date().isoformat(),
-                                        (today + pd.Timedelta(days=1)).date().isoformat())
+        # FIX: cekim karari rt_cons'un TAMAMLANAN gunune gore verilir (load_plan ileride olabilir;
+        # eski kosul cons.index.max()'a bakinca sessizce atlaniyor ve rt-cons takili kaliyordu)
+        y_last = cons["rt_cons"].dropna().index.max() if "rt_cons" in cons else None
+        start = (pd.Timestamp(y_last).normalize() + pd.Timedelta(days=1)).date().isoformat() if y_last is not None \
+            else "2016-01-01"
+        cons = D.append_consumption(cons, start,
+                                    (today + pd.Timedelta(days=1)).date().isoformat())
 
     nat, cities = D.load_or_create_weather()
 
