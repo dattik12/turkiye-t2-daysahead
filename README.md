@@ -1,83 +1,76 @@
 # ⚡ Türkiye Ulusal T+1/T+2 Elektrik Talep Tahmini
 
+[![daily-t2-forecast](https://github.com/dattik12/turkiye-t2-daysahead/actions/workflows/daily.yml/badge.svg)](https://github.com/dattik12/turkiye-t2-daysahead/actions/workflows/daily.yml)
+
 Her gece **03:00 (Türkiye)** 🇹🇷 EPİAŞ'tan bir önceki günün tüketimini çeker, veriyi günceller ve
 **T+2 (ve T+1)** saatlik tahminini üretir. Gerçekleşen veri geldikçe tahminlerle eşleştirilir ve
 **MAPE her gün loglanır** — TEİAŞ'ın kendi planıyla karşılaştırmalı.
 
 > 🎯 *"Veri seti son günü 18 Ağustos ise bize lazım olan 20 Ağustos."*
 
+![Performans](docs/performance.png)
+
 ---
 
-## 📊 Performans
+## 📊 Sonuçlar · Backtest 2025-01-01 → 2026-08-18 (593 karar günü, saatlik 14.232 nokta)
 
-### Backtest · 2025-01-01 → 2026-08-18 (593 karar günü)
+| Ufuk | MAPE | MAE | Saatlerin payı |
+|:---|---:|---:|:---|
+| **T+1** | **%1.63** | 649 MW | %72,6'sı ±%2 bandında |
+| **T+2** | **%2.27** | 910 MW | %74,4'ü ±%3 bandında |
+| T+2 bayram-dışı | %2.15 | — | — |
+| T+2 Kurban/bayram | %4.50 | — | — |
+| 🏛️ TEİAŞ load-plan (T+1, rakip) | **%3.01** | — | — |
 
-| Ufuk | MAPE | MAE |
-|:---|---:|---:|
-| **T+1** | **%1.63** | 649 MW |
-| **T+2** | **%2.27** | 910 MW |
-| T+2 bayram-dışı | %2.15 | — |
-| T+2 Kurban/bayram | %4.50 | — |
-| 🏛️ TEİAŞ load-plan (T+1, rakip) | **%3.01** | — |
+- T+1'de resmî TEİAŞ planını **~1,4 puan** geçiyoruz — farkın en büyük olduğu dönemler
+  havanın ani döndüğü geçiş ayları (soldaki grafikte gri barların öne çıktığı aylar).
+- Rakamlar `data/exports/backtest_t1_t2_2025_2026.csv` üzerinden
+  [`scripts/make_readme_chart.py`](scripts/make_readme_chart.py) ile yeniden üretilebilir.
 
-> T+1'de resmi TEİAŞ planını **~1.4 puan** geçiyoruz. Saatlik detay: `data/results/backtest_sim_2025_2026.csv`
-
-### 📤 FTP modeli için çıktılar (2025 → bugün)
-
-Başka ekiplerin/model eğitimlerinin kullanabileceği temiz dosyalar (`data/exports/`):
+### 📤 Başka ekiplerin kullanımı için temiz çıktılar (`data/exports/`)
 
 | Dosya | İçerik | Satır |
 |:--|:--|--:|
-| `backtest_t1_t2_2025_2026.csv` | Saat başına tek satır: gerçekleşen + T+1 + T+2 + TEİAŞ planı + METİK | 14.232 |
+| `backtest_t1_t2_2025_2026.csv` | Saat başına tek satır: gerçekleşen + T+1 + T+2 + TEİAŞ planı | 14.232 |
 | `backtest_daily_summary_2025_2026.csv` | Günlük özet: ortalamalar + günlük MAPE | 594 |
 
-- T+1 tahmini = **bir gün önceki** kararın tahmini; T+2 = **iki gün önceki** kararın tahmini.
-- `gerceklesen_mw` iki ufuk için aynı → kendi T+1 ve T+2 modelini tek gerçekle birlikte eğitebilirler.
-- `teias_plan_mw` rakip olarak karşılaştırma için.
+- `t1_forecast_mw` = bir gün önceki kararın tahmini; `t2_forecast_mw` = iki gün önceki kararın tahmini.
+- `gerceklesen_mw` iki ufuk için aynı → kendi T+1 ve T+2 modelini tek gerçekle eğitebilirsiniz.
 - Yeniden üretim: `python -m scripts.export_backtest`
 
 ### 🔴 Canlı MAPE (bugünden itibaren)
 
 Her sabah 03:00'te yapılan tahmin, o günün gerçekleşeni belli olunca `mape_history.csv`'e düşer.
-
-| Karar | Hedef | Ufuk | MAPE |
-|:--|:--|:--:|--:|
-| 18 Ağu | 19 Ağu | T+1 | _gerçekleşen bekleniyor_ |
-| 18 Ağu | 20 Ağu | T+2 | _gerçekleşen bekleniyor_ |
+Süreç GitHub Actions'ta koştuğu için tahminler ve skorlar otomatik commit edilir — bu repo aynı
+zamanda modelin **canlı kanıt defteridir**.
 
 ---
 
 ## 🔄 Her sabah ne oluyor?
 
-```
-03:00 TR
- 1. EPİAŞ → dünün tamamlanmış tüketimi + TEİAŞ planı
- 2. Hava → OpenMeteo ECMWF IFS (10 şehir, nüfus ağırlıklı)
- 3. Karar günü D = son tam gün
- 4. T+1 ve T+2 tahmini üret
- 5. Geçmiş tahminleri gerçekleşenle eşleştir → MAPE logu
-```
+1. **Çekim** — EPİAŞ Şeffaflık (`eptr2`) ile dünkü gerçek tüketim + TEİAŞ planı; OpenMeteo ECMWF ile 10 il nüfus-ağırlıklı hava.
+2. **Feature** — takvim (saat, gün tipi, elle ayarlı bayram paketi), lag/rolling sıcaklık-nüfus etkileşimleri.
+3. **Tahmin** — her ufuk için ayrı LightGBM; haftalık yeniden eğitim.
+4. **Skorlama** — dünün tahmini vs gerçekleşen → `mape_history.csv` + otomatik commit.
 
-Tahminler `forecast_results.csv`'e yazılır, sonuçlar GitHub Actions ile **otomatik commit** edilir.
-Manuel tetik: *Actions → daily-t2-forecast → Run workflow*.
+## 🧠 Model kararları (ve nedenleri)
 
----
-
-## 🧠 Model (tek satır)
-
-Her ufuk için **ayrı LightGBM** — D+2 modeli `lag24` **kullanmaz** (o saat daha yaşanmadı — leak yok),
-elle ayarlı bayram paketi + OpenMeteo havasıyla. Haftalık yeniden eğitim. Deneysel "manyak"
-feature'lar (`ROADMAP.md`) regülasyon ister, şimdilik üretimde kapalı.
-
----
+- **Ufuk başına ayrı model.** T+2 modeli `lag24` **kullanmaz** — tahmin anında o saat daha
+  yaşanmamıştır; kullanmak veri sızıntısı olur. Bu tek karar, T+2'nin "kağıt üstünde iyi,
+  sahada çöken" modellerden farklılaşmasını sağlıyor.
+- **Elle ayarlı bayram paketi.** Türkiye'de kayan dini bayramlar hazır takvimlerde eski yıla göre
+  duruyor; karar günü bazlı manuel eşleme bayram MAPE'sini %4,5'e indirdi (hazır takvimde daha kötüydü).
+- **Deneysel feature'lar üretimde kapalı.** A/B'de generalize etmeyen agresif sürekli feature'lar
+  (`ROADMAP.md`) regülasyon şartına bağlı — ana dalda değil.
 
 ## 📁 Yapı
 
 ```
 src/        config · data (EPİAŞ+OpenMeteo) · features · model · forecast · scoring
-scripts/    bootstrap (ilk kurulum) · daily_run (03:00) · backtest_sim · export_backtest
+scripts/    bootstrap · daily_run (03:00) · backtest_sim · export_backtest · make_readme_chart
 .github/    daily.yml — cron 03:00 TR + otomatik commit
-data/       dataset/ (2016→ bugün) · weather/ · results/ (forecast + MAPE + backtest) · exports/ (FTP çıktıları)
+data/       dataset/ (2016→bugün) · weather/ · results/ · exports/
+docs/       performance.png (README grafiği, betikten üretilir)
 ```
 
 ## 🚀 Kurulum
@@ -90,8 +83,6 @@ python -m scripts.daily_run            # günlük tahmin
 ```
 
 GitHub Actions için `EPTR_USERNAME` ve `EPTR_PASSWORD` → **Settings → Secrets**.
-
----
 
 ## 🗂️ Veri kaynakları
 
