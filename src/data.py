@@ -230,13 +230,21 @@ def load_or_create_weather() -> tuple:
     if last_c.normalize() < today:
         try:
             time.sleep(0.6)  # sehir istekleri arasi: rate-limit tamponu
-            new = hist_cities((last_c + pd.Timedelta(days=1)).date().isoformat(),
-                              (today + pd.Timedelta(days=1)).date().isoformat())
-            cand = pd.concat([cities, new])
-            cand = cand[~cand.index.duplicated(keep="last")].sort_index()
-            if cand["city"].nunique() >= 8 and new["city"].nunique() >= 8:
-                cities = cand
-                cities.to_parquet(C.WEATHER_CITIES_PARQUET)
+            new = _fix_dt_index(hist_cities((last_c + pd.Timedelta(days=1)).date().isoformat(),
+                                            (today + pd.Timedelta(days=1)).date().isoformat()))
+            # LONG frame dedupe: anahtar (zaman, sehir) — sadece index dedupe YAPMA
+            # (her saat damgası 10 sehirde tekrarlanir; index dedupe 9 sehri siler!)
+            a = cities.reset_index(names="dt")
+            b = new.reset_index(names="dt")
+            cand = pd.concat([a, b], ignore_index=True)
+            cand = cand.drop_duplicates(subset=["dt", "city"], keep="last").sort_values(["dt", "city"])
+            ok_cities = cand["city"].nunique() >= 8 and new["city"].nunique() >= 8
+            if ok_cities:
+                cities = cand.set_index(pd.to_datetime(cand.pop("dt")))
+                # disk formati: 'dt' KOLONLU (RangeIndex) — yuklemede _fix_dt_index halleder
+                out = cities.reset_index()
+                out = out.rename(columns={"index": "dt"})
+                out.to_parquet(C.WEATHER_CITIES_PARQUET, index=False)
             else:
                 # PARTIAL/HATALI: diskteki saglam dosyayi koru, bellegi de BOZMA
                 print(f"  [weather] cities refresh atlandi (sehir sayisi yetersiz: {cand['city'].nunique()})")
