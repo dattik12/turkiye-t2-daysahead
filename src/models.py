@@ -23,14 +23,19 @@ def predict(m, feats: list, X: pd.DataFrame) -> np.ndarray:
 
 
 def train_engine(P, wnat, wdyn, dayfrac, cw, seg_urban, seg_ind, cons,
-                 train_idx, horizon, d1_pred: pd.Series | None = None):
-    """Horizon basina BASE (+ opsiyonel CONT/manyak) modellerini egit. Donen dict cont -> (model, feats)."""
+                 train_idx, horizon, d1_pred: pd.Series | None = None,
+                 extra_cols: dict | None = None):
+    """Horizon basina BASE (+ opsiyonel CONT/manyak) modellerini egit. Donen dict cont -> (model, feats).
+    extra_cols: horizon'a ozel ek feature'lar (kolon->array), orn. lep_rel (H1)."""
     from .features import make_row
     conts = [False] if not getattr(C, "USE_CONT", False) else [False, True]
     out = {}
     for cont in conts:
         F = make_row(P, wnat, wdyn, dayfrac, cw, seg_urban, seg_ind,
                      train_idx, horizon, d1_pred=d1_pred, cont=cont)
+        if extra_cols:
+            for k, v in extra_cols.items():
+                F[k] = v
         F["target"] = cons.reindex(train_idx)
         F = F.dropna()
         feats = [c for c in F.columns if c != "target"]
@@ -39,7 +44,8 @@ def train_engine(P, wnat, wdyn, dayfrac, cw, seg_urban, seg_ind, cons,
 
 
 def predict_pair(models, P, wnat, wdyn, dayfrac, cw, seg_urban, seg_ind,
-                 idx, horizon, d1_pred: pd.Series | None = None) -> np.ndarray:
+                 idx, horizon, d1_pred: pd.Series | None = None,
+                 extra_cols: dict | None = None) -> np.ndarray:
     """BASE (+ CONT) ortalamasi; USE_CONT=False ise yalnizca BASE."""
     from .features import make_row
     conts = sorted(models.keys())
@@ -48,5 +54,8 @@ def predict_pair(models, P, wnat, wdyn, dayfrac, cw, seg_urban, seg_ind,
         m, feats = models[cont]
         X = make_row(P, wnat, wdyn, dayfrac, cw, seg_urban, seg_ind,
                      idx, horizon, d1_pred=d1_pred, cont=cont)
+        if extra_cols:
+            for k, v in extra_cols.items():
+                X[k] = v
         preds.append(predict(m, feats, X))
     return np.mean(preds, axis=0)

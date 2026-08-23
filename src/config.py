@@ -59,6 +59,9 @@ USE_ENSEMBLE = True
 
 # --- Multi-model ensemble (LGBM + XGB + CatBoost) ---
 ENSEMBLE_MODELS = ["lgbm"]  # production single; per-model tuning workers override
+# --- LEP (TEIAS gun-oncesi plan) ozelligi: is 17:00 TR'de kosar, LEP(T)/LEP(T+1) yayimlidir.
+# H1'e scale-free oran girer: lep(gun(t),saat)/samehr_7d_24(t-48s) -> A/B: H1 %1.98->%1.89 (81g)
+USE_LEP_FEATURE = True
 XGB_PARAMS = dict(n_estimators=1500, learning_rate=0.05, max_depth=8, colsample_bytree=0.8, subsample=0.85, min_child_weight=3, reg_alpha=0.1, reg_lambda=1.0, gamma=0.0, tree_method="hist", random_state=42, verbosity=0)
 CAT_PARAMS = dict(iterations=1500, learning_rate=0.05, depth=8, l2_leaf_reg=3.0, random_strength=1.0, bagging_temperature=0.5, border_count=128, random_seed=42, verbose=False, loss_function="RMSE")
 STACKING_ALPHAS = [0.01, 0.1, 1.0, 10.0, 100.0]

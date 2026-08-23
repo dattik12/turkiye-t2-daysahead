@@ -1,9 +1,10 @@
 name: daily-t2-forecast
 
-# 03:00 Turkiye = 00:00 UTC. Her gun calisir.
+# 17:00 Turkiye = 14:00 UTC. Aksam kosusu: LEP(T)/LEP(T+1) yayimlanmis olur ->
+# H1 modeli hedef gunun TEIAS plan oranini feature olarak kullanir (A/B: -0.09pp).
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 14 * * *"
   workflow_dispatch:      # elle de tetiklenebilir
 
 permissions:

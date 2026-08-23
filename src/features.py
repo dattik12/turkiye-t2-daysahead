@@ -135,6 +135,18 @@ def precompute(cons: pd.Series) -> pd.DataFrame:
     return P
 
 
+def lep_rel_feature(lp: pd.Series, S: pd.Series, idx) -> np.ndarray:
+    """Scale-free LEP orani (H1): lep(gun(t), ayni saat) / samehr_7d_24(t-48s).
+    Payda her zaman tamamlanmis gunlere bakar -> nedensel ve NaN'siz.
+    Is 17:00 TR'de kostugu icin lep(gun(t)) kararda yayimlanmis olur.
+    Eksik LEP saatleri notr 1.0 ile dolar (plan=normal varsayimi)."""
+    idx = pd.DatetimeIndex(idx)
+    num = lp.reindex(idx).to_numpy()
+    den = S.reindex(idx - pd.Timedelta(hours=48)).to_numpy()
+    rel = num / den
+    return np.where(np.isfinite(rel), rel, 1.0)
+
+
 BASE_H1 = ["lag24", "lag48", "lag72", "lag168", "lag336", "samehr_7d_24",
            "roll24_prev1", "roll24max_prev1", "roll168_prev1",
            "day_mean_D1", "day_max_D1", "day_min_D1", "day_mean_D1_2", "day_mean_D1_8", "day_delta_1"]

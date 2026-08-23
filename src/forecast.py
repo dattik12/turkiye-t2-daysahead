@@ -103,6 +103,16 @@ class Engine:
             TE = ME
         else:
             TE = M
+        # --- LEP (TEIAS plan) ozelligi: yalnizca tek-model yolu + H1.
+        # Is 17:00 TR'de kostugu icin hedef gunun plani yayimlanmistir; sabah kosulursa
+        # degerler NaN doner ve notr 1.0'a duser (graceful degrade).
+        use_lep = getattr(C, "USE_LEP_FEATURE", False) and "load_plan" in self.cons and not use_multi
+
+        def lep_extra(idx, hz):
+            if not use_lep or hz != 1:
+                return None
+            return {"lep_rel": F.lep_rel_feature(self.cons["load_plan"], Peff["samehr_7d_24"], idx)}
+
         if models_cache is None:
             if use_multi:
                 m1 = TE.train_engine_multi(Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, self.cons["rt_cons"], train_idx, 1)
@@ -113,9 +123,13 @@ class Engine:
                 d1_tr = pd.Series(np.mean(list(d1_tr_vals.values()), axis=0) if len(d1_tr_vals)>1 else list(d1_tr_vals.values())[0], index=train_idx)
                 m2 = TE.train_engine_multi(Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, self.cons["rt_cons"], train_idx, 2, d1_pred=d1_tr)
             else:
-                m1 = M.train_engine(Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, self.cons["rt_cons"], train_idx, 1)
-                p1 = M.predict_pair(m1, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days1, 1)
-                d1_tr = pd.Series(M.predict_pair(m1, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, train_idx - pd.Timedelta(hours=24), 1), index=train_idx)
+                m1 = M.train_engine(Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, self.cons["rt_cons"], train_idx, 1,
+                                    extra_cols=lep_extra(train_idx, 1))
+                p1 = M.predict_pair(m1, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days1, 1,
+                                    extra_cols=lep_extra(days1, 1))
+                t24 = train_idx - pd.Timedelta(hours=24)
+                d1_tr = pd.Series(M.predict_pair(m1, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, t24, 1,
+                                                 extra_cols=lep_extra(t24, 1)), index=train_idx)
                 m2 = M.train_engine(Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, self.cons["rt_cons"], train_idx, 2, d1_pred=d1_tr)
         else:
             m1, m2, _ = models_cache
@@ -123,7 +137,8 @@ class Engine:
                 p1_dict = TE.predict_multi(m1, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days1, 1)
                 p1 = np.mean(list(p1_dict.values()), axis=0) if len(p1_dict) > 1 else list(p1_dict.values())[0]
             else:
-                p1 = M.predict_pair(m1, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days1, 1)
+                p1 = M.predict_pair(m1, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days1, 1,
+                                    extra_cols=lep_extra(days1, 1))
 
         d1_feed = pd.Series(p1, index=days1)
         if use_multi and isinstance(m2, dict) and "lgbm" in m2:
