@@ -15,7 +15,6 @@ def _eptr():
 def pull_epias(start: str, end: str, series: str = "rt-cons", retries: int = 5) -> pd.DataFrame:
     """EPIAS saatlik seri cek; dondurulen df: index=naive TR saati, value kolonu."""
     from eptr2 import EPTR2
-    eptr = EPTR2(use_dotenv=True, recycle_tgt=True, dotenv_path=".env", tgt_path=".")
     cfg = C.EPIAS_SERIES[series]
     for i in range(retries):
         try:
