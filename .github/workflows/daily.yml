@@ -43,7 +43,24 @@ jobs:
           EPTR_PASSWORD: ${{ secrets.EPTR_PASSWORD }}
 
       - name: Run daily pipeline
-        run: python -m scripts.daily_run
+        # EPIAS/OpenMeteo gecici erisilemezliginde kendini iyilestir:
+        # 3 deneme, aralarinda 10dk bekleme (~45dk kesintiye kadar dayanir).
+        # Uc deneme de basarisizsa step fail eder -> run failure mail'i (durust yalanci basari degil).
+        run: |
+          ok=0
+          for i in 1 2 3; do
+            echo "=== daily pipeline deneme ${i}/3 ($(date -u +%H:%M:%SZ)) ==="
+            if python -m scripts.daily_run; then
+              ok=1
+              break
+            fi
+            echo "--- deneme ${i}/3 basarisiz"
+            [ "$i" -lt 3 ] && sleep 600
+          done
+          if [ "$ok" != "1" ]; then
+            echo "PIPELINE_FAILED_3_ATTEMPTS — gunluk tahmin uretilemedi"
+            exit 1
+          fi
 
       - name: Commit results
         shell: bash
