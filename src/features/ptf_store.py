@@ -86,6 +86,7 @@ def _blended(idx: pd.DatetimeIndex, d1: str, d2: str,
         raise RuntimeError("dual model dosyasi yok (train_wind calistir)")
     meta = WMODEL.load_meta(C.WIND_MODEL_D1)
     w = float(meta.get("blend_w", 0.0))
+    bins = meta.get("blend_bins", {}) or {}
     bias = {int(k): float(v) for k, v in meta.get("bias", {}).items()}
     hs = (idx[0] - pd.Timedelta(days=16)).date().isoformat()
     he = (idx[0] - pd.Timedelta(hours=1)).date().isoformat()
@@ -129,8 +130,15 @@ def _blended(idx: pd.DatetimeIndex, d1: str, d2: str,
     p1 = WMODEL.predict(b1, f1) + f1.index.hour.map(lambda h: bias.get(h, 0.0)).values
     p2 = WMODEL.predict(b2, f2)
     r = ritm.reindex(idx)
-    out = w * pd.concat([p1, p2]).reindex(idx) + (1 - w) * r
-    return out, "blend"
+    thr = bins.get("thr", [])
+    wb = bins.get("ws", {})
+    if thr and len(thr) == 2:
+        bb = pd.cut(f["nwp_spread"].fillna(0), [-1e-9] + thr + [1e9], labels=[0, 1, 2])
+        wv = np.array([wb.get(str(int(x)), w) if pd.notna(x) else w for x in bb])
+    else:
+        wv = np.full(len(idx), w)
+    out = wv * pd.concat([p1, p2]).reindex(idx).values + (1 - wv) * r.values
+    return pd.Series(out, index=idx), "blend"
 
 
 def build(master_df: pd.DataFrame, rad: pd.Series, decision: pd.Timestamp,

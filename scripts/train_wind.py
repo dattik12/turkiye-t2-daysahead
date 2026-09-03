@@ -94,27 +94,58 @@ def main() -> None:
     n_tu = tu.groupby(tu.index.hour).size()
     bias = (r_tu * n_tu / (n_tu + 200)).to_dict()
     p1_tu_b = p1_tu + tu.index.hour.map(bias).fillna(0).values
+    # Adaptif blend: NWP yayilim dilimine gore agirlik (belirsiz gunlerde RITM'e yaslan)
+    sp = tu["nwp_spread"].fillna(0)
+    try:
+        bins = pd.qcut(sp, 3, labels=[0, 1, 2], duplicates="drop")
+    except ValueError:
+        bins = pd.Series(1, index=tu.index)
+    edges = [-1e-9, 1e-9, 1e9] if bins.nunique() < 2 else None
+    ws, thr = {}, []
+    if edges is None:
+        qs = sp.quantile([1 / 3, 2 / 3]).tolist()
+        thr = [float(qs[0]), float(qs[1])]
     best_w, best_s = 0.0, float("inf")
     for w in [i / 20 for i in range(21)]:
         s = mape(w * p1_tu_b + (1 - w) * tu["ritm_fc"], tu["target_gen"])
         if s < best_s:
             best_w, best_s = w, s
+    if thr:
+        for b in [0, 1, 2]:
+            m = (pd.cut(sp, [-1e-9] + thr + [1e9], labels=[0, 1, 2]) == b)
+            bw, bs = best_w, float("inf")
+            if m.sum() > 48:
+                for w in [i / 20 for i in range(21)]:
+                    s = mape(w * p1_tu_b[m] + (1 - w) * tu["ritm_fc"][m], tu["target_gen"][m])
+                    if s < bs:
+                        bw, bs = w, s
+            ws[b] = bw
+    else:
+        ws = {0: best_w, 1: best_w, 2: best_w}
     p1_te = M.predict(b1, te) + te.index.hour.map(bias).fillna(0).values
     te_m2 = te.copy()
     te_m2[M.FRESH_COLS] = np.nan
     p2_te = M.predict(b2, te_m2)
-    b1_te = best_w * p1_te + (1 - best_w) * te["ritm_fc"]
-    b2_te = best_w * p2_te + (1 - best_w) * te["ritm_fc"]
+    def binw(s: pd.Series) -> np.ndarray:
+        if not thr:
+            return np.full(len(s), best_w)
+        b = pd.cut(s.fillna(0), [-1e-9] + thr + [1e9], labels=[0, 1, 2])
+        return np.array([ws.get(int(x), best_w) if pd.notna(x) else best_w for x in b])
+    w1_te = binw(te["nwp_spread"])
+    w2_te = binw(te_m2["nwp_spread"])
+    b1_te = w1_te * p1_te + (1 - w1_te) * te["ritm_fc"].values
+    b2_te = w2_te * p2_te + (1 - w2_te) * te["ritm_fc"].values
     s1, s2 = mape(b1_te, te["target_gen"]), mape(b2_te, te["target_gen"])
     s_ritm = mape(te["ritm_fc"], te["target_gen"])
     print(f"TEST D+1-proxy: model-blend %{s1:.2f} | D+2-proxy: %{s2:.2f} | "
-          f"blok-ort %{(s1 + s2) / 2:.2f} | RITM %{s_ritm:.2f} (w={best_w:.2f})")
+          f"blok-ort %{(s1 + s2) / 2:.2f} | RITM %{s_ritm:.2f} (w={best_w:.2f}, bins={ws})")
     if (s1 + s2) / 2 < s_ritm:
         p1 = os.path.join("models", "wind_lgbm_d1.txt")
         p2 = os.path.join("models", "wind_lgbm_d2.txt")
-        M.save(b1, p1, meta={"blend_w": best_w,
+        M.save(b1, p1, meta={"blend_w": best_w, "blend_bins": {"thr": thr, "ws": ws},
                              "bias": {str(k): float(v) for k, v in bias.items()}})
-        M.save(b2, p2, meta={"blend_w": best_w, "bias": {}})
+        M.save(b2, p2, meta={"blend_w": best_w, "blend_bins": {"thr": thr, "ws": ws},
+                             "bias": {}})
         print("Kazanan: dual-model -> models/wind_lgbm_d1|d2.txt")
     else:
         print("Kazanan: RITM — model dosyalari guncellenmedi.")
