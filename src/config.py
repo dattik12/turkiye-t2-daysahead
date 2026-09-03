@@ -63,7 +63,7 @@ USE_ENSEMBLE = True
 # Kaynak: ETKB Temmuz 2026 — toplam 126.476 MW x %21,7 gunes = ~27.445 MW.
 # AYLIK guncelle (hizli buyuyor); backfill'de ay-bazli kapasite serisi kullanilacak.
 SOLAR_CAPACITY_MW = 27445.0
-SOLAR_PR = 0.829            # fit: Tem'26 TEIAS 5.37 TWh capasi (calibrate_solar_pr.py)
+SOLAR_PR = 0.921            # fit v2: Tem'26 capasi + sicaklik derate'li (calibrate_solar_pr.py)
 
 # --- RES / Rüzgar v1 (agirlik matrisi) ---
 # Toplam RES kurulu guc: ETKB Tem'26 — 126.476 MW x %12,1 = ~15.304 MW.
@@ -72,7 +72,10 @@ WIND_FARMS_CSV = os.path.join(DATA, "wind", "WIND_FARMS.csv")  # TUREB Oca'26 ca
 WIND_MODEL_TXT = os.path.join(ROOT, "models", "wind_lgbm.txt")  # yoksa builder RITM'e duser
 WIND_TRAIN_DAYS = 60
 
-# --- Multi-model ensemble (LGBM + XGB + CatBoost) ---
+# --- v4.4 bayraklar + seed ensemble ---
+V44_THERMAL = True    # beklenen CDD/HDD_next24/48 feature'lari
+V44_RESID = True      # (saat, gun-tipi) shrinkage rezidu duzeltmesi
+ENSEMBLE_SEEDS = [42]  # v4.4: 3-seed A/B'de gurultu cikti (T+1 +0.012/T+2 -0.069) -> tek seed, maliyet 1x
 ENSEMBLE_MODELS = ["lgbm"]  # production single; per-model tuning workers override
 # --- LEP (TEIAS gun-oncesi plan) ozelligi: is 17:00 TR'de kosar, LEP(T)/LEP(T+1) yayimlidir.
 # H1'e scale-free oran girer: lep(gun(t),saat)/samehr_7d_24(t-48s) -> A/B: H1 %1.98->%1.89 (81g)

@@ -50,6 +50,12 @@ def _rad_series(decision: pd.Timestamp) -> pd.Series:
     return R.forecast_radiation(d1, d2)
 
 
+def _temp_series(decision: pd.Timestamp) -> pd.Series:
+    d1 = (decision + pd.Timedelta(days=1)).date().isoformat()
+    d2 = (decision + pd.Timedelta(days=2)).date().isoformat()
+    return R.forecast_temp(d1, d2)
+
+
 def _wind_series(decision: pd.Timestamp) -> tuple[pd.Series, str]:
     """RES oncelik zinciri: RITM -> LGBM challenger -> fallback(NaN)."""
     d1 = (decision + pd.Timedelta(days=1)).date().isoformat()
@@ -81,7 +87,8 @@ def _wind_series(decision: pd.Timestamp) -> tuple[pd.Series, str]:
 
 def build(master_df: pd.DataFrame, rad: pd.Series, decision: pd.Timestamp,
           capacity_mw: float | None, pr: float,
-          wind: pd.Series | None, wind_status: str) -> pd.DataFrame:
+          wind: pd.Series | None, wind_status: str,
+          temp: pd.Series | None = None) -> pd.DataFrame:
     key = decision.strftime("%Y-%m-%d")
     fc = master_df[master_df["decision_date"] == key].copy()
     if fc.empty:
@@ -94,15 +101,23 @@ def build(master_df: pd.DataFrame, rad: pd.Series, decision: pd.Timestamp,
     fc["consumption_pred_mw"] = fc["pred_mw"].astype("float32")
     fc["sw_rad_tmp"] = rad.reindex(naive).ffill().fillna(0).values
     if capacity_mw:
+        if temp is not None:
+            temp_aligned = pd.Series(temp.reindex(naive).ffill().fillna(20.0).values,
+                                    index=fc.index)
+        else:
+            temp_aligned = None
         fc["solar_pred_mw"] = SM.solar_from_radiation(
-            fc["sw_rad_tmp"], capacity_mw, pr).astype("float32").values
+            pd.Series(fc["sw_rad_tmp"].values, index=fc.index),
+            capacity_mw, pr, temp_c=temp_aligned).astype("float32").values
         fc["solar_status"] = "ok"
     else:
         fc["solar_pred_mw"] = np.nan
         fc["solar_status"] = "unconfigured"
 
-    # Gece GES sifirlamasi (hour<5 veya hour>20): tam 0.0 + zero_night.
-    night = (fc["datetime"].dt.hour < 5) | (fc["datetime"].dt.hour > 20)
+    # Gece GES sifirlamasi (v2: zenit maskesi ^ kontrat saat kurali): tam 0.0 + zero_night.
+    hrs = fc["datetime"].dt.hour
+    zen_night = ~SM.daylight_mask(pd.DatetimeIndex(naive)).to_numpy()
+    night = zen_night | (hrs < 5).to_numpy() | (hrs > 20).to_numpy()
     fc.loc[night, "solar_pred_mw"] = 0.0
     fc.loc[night & (fc["solar_status"] == "ok"), "solar_status"] = "zero_night"
 
@@ -166,8 +181,13 @@ def build_for_decision(decision_date: str | None = None) -> str | None:
         print(f"PTF: radyasyon yok ({str(ex)[:80]}) — cikti uretilemedi.")
         return None
     wind, wind_status = _wind_series(decision)
+    try:
+        temp = _temp_series(decision)
+    except Exception as ex:
+        print(f"PTF uyari: sicaklik yok ({str(ex)[:60]}), derate atlandi")
+        temp = None
     out = build(master, rad, decision, C.SOLAR_CAPACITY_MW, C.SOLAR_PR,
-                None if wind_status == "fallback" else wind, wind_status)
+                None if wind_status == "fallback" else wind, wind_status, temp=temp)
     validate(out)  # ihlalde raise -> yazim YOK
     arch = os.path.join(C.PTF_FEATURES_DIR, "archive")
     os.makedirs(arch, exist_ok=True)

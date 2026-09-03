@@ -30,3 +30,11 @@ def forecast_radiation(s: str, e: str) -> pd.Series:
     out = df[RAD_VAR].copy()
     out.name = "sw_rad_wm2"
     return out.sort_index()
+
+
+def forecast_temp(s: str, e: str) -> pd.Series:
+    """[s,e] CANLI sicaklik tahmini (forecast API, ecmwf_ifs) -> saatlik ulusal C."""
+    df = D.forecast_weather(s, e)
+    out = df["temperature_2m"].copy()
+    out.name = "temp_c"
+    return out.sort_index()

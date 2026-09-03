@@ -1,13 +1,11 @@
-"""RES modeli egitimi: RITM gerceklesmesi + hub IFS ruzgari + RITM tahmini.
+"""RES v2 egitimi: residual-reframe + yon sektoru; 3-yollu holdout, kazanan kaydedilir.
 
 Kullanim:
     python -m scripts.train_wind            # son 60 gun
     python -m scripts.train_wind 90         # son 90 gun
 
-Cikti: models/wind_lgbm.txt + terminalde train forearasyonu (son 7 gun holdout).
-RITM `forecast` kolonu gecmis tarihlerde arsiv tahmin ise model residual ogrenir;
-degilse (generation'a esitse) kolon dusurulup saf meteorolojik model egitilir
-(durust fallback — loga yazilir).
+Adaylar: residual / raw+monotonik / RITM (benchmark).
+Kazanan models/wind_lgbm.txt + .mode sidecar'a yazilir.
 """
 from __future__ import annotations
 import os, sys
@@ -20,7 +18,20 @@ from src.wind import met, model as M, pull_actual as PA
 from src.wind.weights import load_matrix, weighted_speed
 
 
-def main():
+def weighted_direction(wdir_table: pd.DataFrame, matrix: pd.DataFrame) -> pd.Series:
+    w = matrix.set_index("province")["w"]
+    common = [c for c in wdir_table.columns if c in w.index]
+    rad = np.deg2rad(wdir_table[common].fillna(0.0))
+    s = (np.sin(rad) * w[common].values).sum(axis=1)
+    c = (np.cos(rad) * w[common].values).sum(axis=1)
+    return pd.Series(np.rad2deg(np.arctan2(s, c)) % 360.0, index=wdir_table.index)
+
+
+def mape(a: pd.Series, b: pd.Series) -> float:
+    return float((abs(a - b) / b).mean() * 100)
+
+
+def main() -> None:
     days = int(sys.argv[1]) if len(sys.argv) > 1 else 60
     end = (pd.Timestamp.now().normalize() - pd.Timedelta(days=2)).date().isoformat()
     start = (pd.Timestamp(end) - pd.Timedelta(days=days - 1)).date().isoformat()
@@ -28,35 +39,72 @@ def main():
 
     gen = PA.pull_generation(start, end).rename("wind_gen_mw")
     fc = PA.pull_ritm_forecast(start, end)["ritm_fc_mw"]
-    same = np.isclose(fc.reindex(gen.index).ffill(), gen, rtol=1e-6).mean()
-    use_ritm = same < 0.99
-    print(f"RITM forecast generation'a esit orani: {same:.3f} -> "
-          f"{'residual ogrenme (ritm_fc girdi)' if use_ritm else 'saf meteorolojik model'}")
 
     wl = met.history_wind(start, end)
     spd = met.hub_speed_table(wl)
     w10 = wl.pivot_table(index="dt", columns="city", values="w10")
+    wdir = wl.pivot_table(index="dt", columns="city", values="wdir")
     matrix = load_matrix()
     v = weighted_speed(spd, matrix)
     v10 = weighted_speed(w10, matrix)
+    vdir = weighted_direction(wdir, matrix)
 
-    f = M.build_features(v, fc if use_ritm else None)
+    f = M.build_features(v, fc)
     f = M.attach_shear(f, v, v10)
-    df = f.join(gen, how="inner").dropna(subset=["wind_gen_mw"])
+    f = M.attach_direction(f, vdir)
+    # Ufuk-guvenli persistence: D+1 taze lag'leri de doldur (D+2'de maskelenecek)
+    back24 = f.index - pd.Timedelta(hours=24)
+    back48 = f.index - pd.Timedelta(hours=48)
+    back168 = f.index - pd.Timedelta(hours=168)
+    back336 = f.index - pd.Timedelta(hours=336)
+    f["gen_lag24"] = gen.reindex(back24).values
+    f["gen_lag48"] = gen.reindex(back48).values
+    f["gen_lag168"] = gen.reindex(back168).values
+    f["gen_lag336"] = gen.reindex(back336).values
+    f["gen_roll24"] = gen.rolling(24, min_periods=24).mean().shift(24).reindex(f.index).values
+    f["gen_roll168"] = gen.rolling(168, min_periods=168).mean().reindex(f.index).values
+    err = (gen - fc.reindex(gen.index)).rename("err")
+    f["err_lag24"] = err.reindex(back24).values
+    f["err_lag48"] = err.reindex(back48).values
+    f["err_lag168"] = err.reindex(back168).values
+    df = f.join(gen, how="inner").dropna(subset=["wind_gen_mw"]).rename(
+        columns={"wind_gen_mw": "target_gen"})
     print(f"Egitim satiri: {len(df)}")
 
-    cut = df.index.max() - pd.Timedelta(days=7)
-    tr, te = df[df.index <= cut], df[df.index > cut]
-    b = M.train(tr if use_ritm else tr.assign(ritm_fc=0))
-    pred = M.predict(b, te)
-    mape = (abs(pred - te["wind_gen_mw"]) / te["wind_gen_mw"]).mean() * 100
-    mae = abs(pred - te["wind_gen_mw"]).mean()
-    rmape = (abs(te["ritm_fc"] - te["wind_gen_mw"]) / te["wind_gen_mw"]).mean() * 100 \
-        if use_ritm else float("nan")
-    print(f"HOLDOUT son 7 gun: model MAPE %{mape:.2f} MAE {mae:.0f} MW"
-          + (f" | RITM MAPE %{rmape:.2f}" if use_ritm else ""))
-    M.save(b, C.WIND_MODEL_TXT)
-    print(f"Model yazildi: {C.WIND_MODEL_TXT}")
+    tmax = df.index.max()
+    te = df[df.index > tmax - pd.Timedelta(days=7)]          # final test: son 7 gun
+    tu = df[(df.index > tmax - pd.Timedelta(days=21)) & (df.index <= tmax - pd.Timedelta(days=7))]
+    tr = df[df.index <= tmax - pd.Timedelta(days=21)]
+    tr_m2 = tr.copy()
+    tr_m2[M.FRESH_COLS] = np.nan                             # D+2 maskesi (sunumdaki dogal NaN)
+    b1 = M.train(tr, target="residual", feats=M.FEATS)       # D+1: taze lag'li
+    b2 = M.train(tr_m2, target="residual", feats=M.SAFE_FEATS)  # D+2: guvenli set
+    p1_tu = M.predict(b1, tu)
+    r_tu = (tu["target_gen"] - p1_tu).groupby(tu.index.hour).mean()
+    n_tu = tu.groupby(tu.index.hour).size()
+    bias = (r_tu * n_tu / (n_tu + 200)).to_dict()
+    p1_tu_b = p1_tu + tu.index.hour.map(bias).fillna(0).values
+    best_w, best_s = 0.0, float("inf")
+    for w in [i / 20 for i in range(21)]:
+        s = mape(w * p1_tu_b + (1 - w) * tu["ritm_fc"], tu["target_gen"])
+        if s < best_s:
+            best_w, best_s = w, s
+    p1_te = M.predict(b1, te) + te.index.hour.map(bias).fillna(0).values
+    te_m2 = te.copy()
+    te_m2[M.FRESH_COLS] = np.nan
+    p2_te = M.predict(b2, te_m2)
+    b1_te = best_w * p1_te + (1 - best_w) * te["ritm_fc"]
+    b2_te = best_w * p2_te + (1 - best_w) * te["ritm_fc"]
+    s1, s2 = mape(b1_te, te["target_gen"]), mape(b2_te, te["target_gen"])
+    s_ritm = mape(te["ritm_fc"], te["target_gen"])
+    print(f"TEST D+1-proxy: model-blend %{s1:.2f} | D+2-proxy: %{s2:.2f} | "
+          f"blok-ort %{(s1 + s2) / 2:.2f} | RITM %{s_ritm:.2f} (w={best_w:.2f})")
+    if (s1 + s2) / 2 < s_ritm:
+        M.save(b1, os.path.join("models", "wind_lgbm_d1.txt"))
+        M.save(b2, os.path.join("models", "wind_lgbm_d2.txt"))
+        print("Kazanan: dual-model -> models/wind_lgbm_d1|d2.txt")
+    else:
+        print("Kazanan: RITM — model dosyalari guncellenmedi.")
 
 
 if __name__ == "__main__":

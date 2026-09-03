@@ -67,6 +67,7 @@ zamanda modelin **canlı kanıt defteridir**.
 
 ```
 src/        config · data (EPİAŞ+OpenMeteo) · features (+ptf_store) · model · forecast · scoring
+(v4.4: ufuk-güvenli lag seti, termal-yük H1, bayram v2, rezidü düzeltme; `scripts/_leak_check.py`)
 src/consumption/  v4.3 tuketim hatti referans paketi (moduller tasinmadi)
 src/solar/        GES v1 iskelet: radiation (OpenMeteo SW) · model (rad->MW) · pull_actual (best-effort)
 scripts/    bootstrap · daily_run (03:00) · build_ptf_features · backtest_sim · export_backtest · make_readme_chart
@@ -92,9 +93,8 @@ solar_status (ok/zero_night/unconfigured) | wind_status (ritm/lgbm_challenger/
 fallback) | is_peak_hour (08<=saat<20, uint8)`.
 Export oncesi validate(): 48 satir, gap/dup yok, toplamsallik, residual>0,
 gece GES=0, penetrasyon [0,1) — ihlalde yazim YOK.
-GES: PR=0.829 (Tem'26 TEİAŞ çapalı). RES v1: RİTM tahmini (holdout'ta LGBM'e
-karşı %9.57 vs %10.14 ile önde); LGBM challenger `models/wind_lgbm.txt`'de
-(`python -m scripts.train_wind`).
+GES: PR=0.921 (Tem'26 TEİAŞ çapası + sıcaklık derate). RES v1: RİTM tahmini (4 denemede
+geçilemedi: LGBM %10.1-10.9 vs %9.57; üretim RİTM'de, challenger dosyası kaldırıldı).
 
 ## 🚀 Kurulum
 

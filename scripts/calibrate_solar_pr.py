@@ -21,12 +21,18 @@ from src import data as D
 
 
 def monthly_pr(year: int, month: int, teias_twh: float, capacity_mw: float) -> dict:
+    from src.solar import model as SM
     nat = D.load_or_create_weather()[0]
     nat.index = pd.to_datetime(nat.index)
     m = nat[(nat.index.year == year) & (nat.index.month == month)]
     if "shortwave_radiation" not in m:
         raise KeyError("histfc_national'da shortwave_radiation yok")
-    full_sun_h = float(m["shortwave_radiation"].clip(lower=0).sum() / 1000.0)
+    ghi = m["shortwave_radiation"].clip(lower=0)
+    if "temperature_2m" in m:  # v2: derate'li tam-gunes-esdegeri (uretim modeliyle ayni fizik)
+        f = SM.derate_factor(m["temperature_2m"], ghi)
+        full_sun_h = float((ghi / 1000.0 * f).sum())
+    else:
+        full_sun_h = float(ghi.sum() / 1000.0)
     e_teias_mwh = teias_twh * 1e6
     pr = e_teias_mwh / (full_sun_h * capacity_mw)
     cf = e_teias_mwh / (capacity_mw * len(m))
