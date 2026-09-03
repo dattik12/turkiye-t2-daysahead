@@ -68,6 +68,11 @@ jobs:
         continue-on-error: true
         run: python -m scripts.build_ptf_features
 
+      - name: Snapshot IFS forecast (lead-time hizali arsiv, non-blocking)
+        # Train/serve hava skew'unu kapatacak arsiv her gun birikir; basarisiz olursa run etkilenmez.
+        continue-on-error: true
+        run: python -m scripts.collect_fcast_snapshot
+
       - name: Commit results
         shell: bash
         run: |
