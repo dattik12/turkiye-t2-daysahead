@@ -10,7 +10,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from . import config as C
+from .. import config as C
 
 # ----------------------------------------------------------- takvim/bayram ----
 HOLIDAY_DATES = {

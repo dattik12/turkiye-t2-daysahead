@@ -15,6 +15,7 @@ WEATHER_CITIES_PARQUET = os.path.join(WEATHER_DIR, "histfc_cities.parquet")
 FORECAST_MASTER = os.path.join(RESULTS_DIR, "forecast_results.csv")      # her gunun tahmini
 MAPE_HISTORY = os.path.join(RESULTS_DIR, "mape_history.csv")             # gunluk skor logu
 BACKTEST_CSV = os.path.join(RESULTS_DIR, "backtest_sim_2025_2026.csv")   # simule backtest
+PTF_FEATURES_DIR = os.path.join(DATA, "forecast", "ptf_features")        # PTF input feature store
 
 TZ = "Europe/Istanbul"          # UTC+3 sabit
 DECISION_HOUR_TR = "03:00"      # gunluk calisma saati (TR)
@@ -56,6 +57,12 @@ LGB_PARAMS = dict(
 )
 # v4.3 + v5.2 ensemble icin her ufka iki model (temel + manyak-surekli)
 USE_ENSEMBLE = True
+
+# --- PTF Feature Engine / GES v1 iskelet ---
+# TEIAS aylik istatistikten doldur (lisansli+lisanssiz toplam kurulu guc, MW).
+# None iken solar NaN + status='unconfigured' yazilir (daily run bloklanmaz).
+SOLAR_CAPACITY_MW = None
+SOLAR_PR = 0.80            # performans orani (backfill'de fit edilecek placeholder)
 
 # --- Multi-model ensemble (LGBM + XGB + CatBoost) ---
 ENSEMBLE_MODELS = ["lgbm"]  # production single; per-model tuning workers override

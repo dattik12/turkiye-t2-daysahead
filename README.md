@@ -66,12 +66,28 @@ zamanda modelin **canlı kanıt defteridir**.
 ## 📁 Yapı
 
 ```
-src/        config · data (EPİAŞ+OpenMeteo) · features · model · forecast · scoring
-scripts/    bootstrap · daily_run (03:00) · backtest_sim · export_backtest · make_readme_chart
-.github/    daily.yml — cron 03:00 TR + otomatik commit
-data/       dataset/ (2016→bugün) · weather/ · results/ · exports/
+src/        config · data (EPİAŞ+OpenMeteo) · features (+ptf_store) · model · forecast · scoring
+src/consumption/  v4.3 tuketim hatti referans paketi (moduller tasinmadi)
+src/solar/        GES v1 iskelet: radiation (OpenMeteo SW) · model (rad->MW) · pull_actual (best-effort)
+scripts/    bootstrap · daily_run (03:00) · build_ptf_features · backtest_sim · export_backtest · make_readme_chart
+.github/    daily.yml — cron 03:00 TR + PTF adimi (non-blocking) + otomatik commit
+data/       dataset/ (2016→bugün) · weather/ · results/ · exports/ · forecast/ptf_features/
 docs/       performance.png (README grafiği, betikten üretilir)
 ```
+
+## ⚡ PTF Input Feature Engine (v1 iskelet)
+
+Tüketim hattı (v4.3) aynen durur; depo ayrıca PTF modeline girdi üretir:
+
+```bash
+python -m scripts.build_ptf_features            # son karar gunu
+python -m scripts.build_ptf_features 2026-09-02 # belirli karar gunu
+```
+
+Çıktı: `data/forecast/ptf_features/<decision>_ptf.parquet` (+csv) —
+`cons_pred_mw | load_plan_mw | sw_rad_wm2 | solar_pred_mw | residual_load_mw | solar_status`.
+Kapasite (`SOLAR_CAPACITY_MW`, TEİAŞ aylık istatistik) tanımlı değilken solar NaN +
+`status='unconfigured'` yazılır, daily run bloklanmaz. Kalibrasyon + backfill sonraki aşama.
 
 ## 🚀 Kurulum
 
