@@ -138,7 +138,24 @@ class Engine:
             r = (y - pd.Series(np.asarray(tr), index=tr_idx)).dropna()
             if r.empty:
                 return base
-            return np.asarray(base) + M.residual_adjust(r, r.index, day_idx)
+            out = np.asarray(base) + M.residual_adjust(r, r.index, day_idx)
+            if getattr(C, "V45_REGIME", True):  # v4.5 MoE: kapili karisim (gated)
+                # Bayram/Ramazan satirlarinda rejim uzmani, normalde saat uzmani.
+                # Ikisi ayni anda uygulanmaz (cift duzeltme olur).
+                from src.features import calendar_cols as _cc
+                cal = _cc(day_idx)
+                gate = ((cal["is_holiday_effect"] > 0)
+                        | (cal["ramadan_day"] > 0)).to_numpy()
+                if gate.any():
+                    reg = M.regime_adjust(r, r.index, day_idx)
+                    base_arr = np.asarray(base)
+                    res_arr = M.residual_adjust(r, r.index, day_idx)
+                    out = np.where(gate, base_arr + reg, base_arr + res_arr)
+            # Guardrail: toplam duzeltme |%1.5| ile sinirli (Temmuz-2026 dersi:
+            # asiri sicakta amplifikasyon dongusu bias'i ikiye katladi).
+            cap = 0.015 * np.abs(np.asarray(base, dtype=float))
+            out = np.asarray(base) + np.clip(np.asarray(out) - np.asarray(base), -cap, cap)
+            return out
 
         if models_cache is None:
             if use_multi:

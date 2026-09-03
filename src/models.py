@@ -42,6 +42,28 @@ def residual_adjust(train_resid: pd.Series, train_idx: pd.DatetimeIndex,
     return cell[target_idx.hour, dtype_tg]
 
 
+def regime_adjust(train_resid: pd.Series, train_idx: pd.DatetimeIndex,
+                  target_idx: pd.DatetimeIndex, k: int = 200) -> np.ndarray:
+    """v4.5 MoE: rejim-hucreli (bayram x ramazan x saat-blogu) shrinkage duzeltme.
+    Global LightGBM + lineer rejim uzmanlari; hucreler trailing reziduden fit edilir.
+    16 hucre (2x2x4), k=200 ile seyrek hucreler sifira cekilir (guvenli)."""
+    from .features import calendar_cols
+    def cells(idx: pd.DatetimeIndex) -> tuple:
+        cal = calendar_cols(idx)
+        hol = (cal["is_holiday_effect"] > 0).to_numpy().astype(int)
+        ram = (cal["ramadan_day"] > 0).to_numpy().astype(int)
+        blk = (idx.hour // 6).to_numpy()
+        return hol, ram, blk
+    h0, r0, b0 = cells(train_idx)
+    r = np.asarray(train_resid, dtype=float)
+    sums = np.zeros((2, 2, 4)); counts = np.zeros((2, 2, 4))
+    np.add.at(sums, (h0, r0, b0), r)
+    np.add.at(counts, (h0, r0, b0), 1)
+    cell = sums / np.maximum(counts, 1) * (counts / (counts + k))
+    h1, r1, b1 = cells(target_idx)
+    return cell[h1, r1, b1]
+
+
 def predict(m, feats: list, X: pd.DataFrame) -> np.ndarray:
     cat = {c: "category" for c in CAT if c in feats}
     return m.predict(X[feats].astype(cat))

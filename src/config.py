@@ -75,8 +75,10 @@ WIND_MODEL_D2 = os.path.join(ROOT, "models", "wind_lgbm_d2.txt")  # D+2 dual-mod
 WIND_TRAIN_DAYS = 60
 
 # --- v4.4 bayraklar + seed ensemble ---
-V44_THERMAL = True    # beklenen CDD/HDD_next24/48 feature'lari
+V44_THERMAL = False     # KAPALI: Tem-A/B'de T+1 +0.118pp zarar (Agu'da -0.012 fayda);
+                        # CDH tepkisi ilk-sicak rejiminde kalibre degil. Kod duruyor, bayrakla acilir.
 V44_RESID = True      # (saat, gun-tipi) shrinkage rezidu duzeltmesi
+V45_REGIME = True     # v4.5 MoE: rejim-hucreli (bayram x ramazan x saat-blogu) uzmanlar
 ENSEMBLE_SEEDS = [42]  # v4.4: 3-seed A/B'de gurultu cikti (T+1 +0.012/T+2 -0.069) -> tek seed, maliyet 1x
 ENSEMBLE_MODELS = ["lgbm"]  # production single; per-model tuning workers override
 # --- LEP (TEIAS gun-oncesi plan) ozelligi: is 17:00 TR'de kosar, LEP(T)/LEP(T+1) yayimlidir.
