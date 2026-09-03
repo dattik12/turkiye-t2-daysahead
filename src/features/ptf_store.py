@@ -57,32 +57,80 @@ def _temp_series(decision: pd.Timestamp) -> pd.Series:
 
 
 def _wind_series(decision: pd.Timestamp) -> tuple[pd.Series, str]:
-    """RES oncelik zinciri: RITM -> LGBM challenger -> fallback(NaN)."""
+    """RES: birincil BLEND (RITM + dual-model duzeltme) -> saf RITM -> fallback(NaN).
+    NOT: dual model residual ogrenir (taban=RITM); RITM yokken tek basina kosmaz."""
     d1 = (decision + pd.Timedelta(days=1)).date().isoformat()
     d2 = (decision + pd.Timedelta(days=2)).date().isoformat()
     idx = pd.date_range(decision + pd.Timedelta(days=1), periods=48, freq="h")
     try:
         r = WPA.pull_ritm_forecast(d1, d2)["ritm_fc_mw"].reindex(idx)
-        if r.notna().sum() >= 40:
-            return r, "ritm"
-        print("PTF uyari: RITM kapsama yetersiz, challenger deneniyor")
+        if r.notna().sum() < 40:
+            print("PTF uyari: RITM kapsama yetersiz")
+            return pd.Series(np.nan, index=idx), "fallback"
     except Exception as ex:
-        print(f"PTF uyari: RITM alinamadi ({str(ex)[:80]}), challenger deneniyor")
+        print(f"PTF uyari: RITM alinamadi ({str(ex)[:80]})")
+        return pd.Series(np.nan, index=idx), "fallback"
     try:
-        booster = WMODEL.load(C.WIND_MODEL_TXT)
-        if booster is not None:
-            wl = WM.forecast_wind(d1, d2)
-            spd = WM.hub_speed_table(wl)
-            w10 = wl.pivot_table(index="dt", columns="city", values="w10")
-            m = load_matrix()
-            f = WMODEL.build_features(weighted_speed(spd, m), None)
-            f = WMODEL.attach_shear(f, weighted_speed(spd, m),
-                                    weighted_speed(w10, m))
-            # NOT: challenger ritm_fc ile egitildi; sunumda NaN->0 skew'u vardir.
-            return WMODEL.predict(booster, f).reindex(idx), "lgbm_challenger"
+        return _blended(idx, d1, d2, r)
     except Exception as ex:
-        print(f"PTF uyari: challenger basarisiz ({str(ex)[:80]})")
-    return pd.Series(np.nan, index=idx), "fallback"
+        print(f"PTF uyari: blend basarisiz ({str(ex)[:80]}), saf RITM")
+        return r, "ritm"
+
+
+def _blended(idx: pd.DatetimeIndex, d1: str, d2: str,
+             ritm: pd.Series) -> tuple[pd.Series, str]:
+    """Dual-model residual duzeltme + blend (meta sidecar: bias + blend_w)."""
+    b1 = WMODEL.load(C.WIND_MODEL_D1)
+    b2 = WMODEL.load(C.WIND_MODEL_D2)
+    if b1 is None or b2 is None:
+        raise RuntimeError("dual model dosyasi yok (train_wind calistir)")
+    meta = WMODEL.load_meta(C.WIND_MODEL_D1)
+    w = float(meta.get("blend_w", 0.0))
+    bias = {int(k): float(v) for k, v in meta.get("bias", {}).items()}
+    hs = (idx[0] - pd.Timedelta(days=16)).date().isoformat()
+    he = (idx[0] - pd.Timedelta(hours=1)).date().isoformat()
+    gen = WPA.pull_generation(hs, he)
+    rfc = WPA.pull_ritm_forecast(hs, he)["ritm_fc_mw"]
+    m = load_matrix()
+    wl = WM.forecast_wind(d1, d2)
+    spd = WM.hub_speed_table(wl)
+    v = weighted_speed(spd, m)
+    w10 = wl.pivot_table(index="dt", columns="city", values="w10")
+    v10 = weighted_speed(w10, m)
+    wd = wl.pivot_table(index="dt", columns="city", values="wdir")
+    ww = m.set_index("province")["w"]
+    common = [c for c in wd.columns if c in ww.index]
+    rr = np.deg2rad(wd[common].fillna(0.0))
+    vdir = pd.Series(np.rad2deg(np.arctan2(
+        (np.sin(rr) * ww[common].values).sum(axis=1),
+        (np.cos(rr) * ww[common].values).sum(axis=1))) % 360.0, index=wd.index)
+    try:
+        wg = WM.forecast_wind(d1, d2, model="gfs_global", suffix="_gfs")
+        vg = weighted_speed(wg.pivot_table(index="dt", columns="city",
+                                           values="w100_gfs"), m)
+    except Exception:
+        vg = None
+    f = WMODEL.build_features(v.reindex(idx).ffill(), ritm.reindex(idx))
+    f = WMODEL.attach_shear(f, v, v10)
+    f = WMODEL.attach_direction(f, vdir)
+    if vg is not None:
+        f["gfs_w100"] = vg.reindex(f.index).values
+        f["nwp_spread"] = (v - vg).abs().reindex(f.index).values
+    err = (gen - rfc.reindex(gen.index)).rename("err")
+    for col, lag in [("gen_lag24", 24), ("gen_lag48", 48), ("gen_lag168", 168),
+                     ("gen_lag336", 336)]:
+        f[col] = gen.reindex(f.index - pd.Timedelta(hours=lag)).values
+    f["gen_roll24"] = gen.rolling(24, min_periods=24).mean().shift(24).reindex(f.index).values
+    f["gen_roll168"] = gen.rolling(168, min_periods=168).mean().reindex(f.index).values
+    for col, lag in [("err_lag24", 24), ("err_lag48", 48), ("err_lag168", 168)]:
+        f[col] = err.reindex(f.index - pd.Timedelta(hours=lag)).values
+    f1, f2 = f.iloc[:24].copy(), f.iloc[24:].copy()
+    f2[WMODEL.FRESH_COLS] = np.nan
+    p1 = WMODEL.predict(b1, f1) + f1.index.hour.map(lambda h: bias.get(h, 0.0)).values
+    p2 = WMODEL.predict(b2, f2)
+    r = ritm.reindex(idx)
+    out = w * pd.concat([p1, p2]).reindex(idx) + (1 - w) * r
+    return out, "blend"
 
 
 def build(master_df: pd.DataFrame, rad: pd.Series, decision: pd.Timestamp,

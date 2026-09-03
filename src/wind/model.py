@@ -7,11 +7,12 @@ import lightgbm as lgb
 
 FEATS = ["w100", "w100_v2", "w100_v3", "shear", "hour", "dow",
          "is_weekend", "wdir_sin", "wdir_cos", "wdir_sector", "ritm_fc",
-         "gen_lag168", "gen_lag336", "gen_roll168", "err_lag168"]
+         "gen_lag168", "gen_lag336", "gen_roll168", "err_lag168",
+         "gfs_w100", "nwp_spread"]
 # NOT: lag24/48 gun-oncesi ufukta (D+2 gec saatler) karar-aninda BILINMEZ -> yasak.
 # Sadece t-168 ve otesi (her zaman bilinen) kullanilir.
 CAT = ["wdir_sector"]
-MONO_RAW = [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+MONO_RAW = [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 SECTORS = list(range(8))
 
 
@@ -43,6 +44,8 @@ def build_features(speed: pd.Series, ritm_fc: pd.Series | None = None) -> pd.Dat
     f["wdir_cos"] = 1.0
     f["wdir_sector"] = pd.Categorical([0] * len(idx), categories=SECTORS)
     f["ritm_fc"] = ritm_fc.reindex(idx).ffill() if ritm_fc is not None else np.nan
+    f["gfs_w100"] = np.nan  # ikinci NWP (egitimde doldurulur)
+    f["nwp_spread"] = np.nan  # |IFS - GFS| agirlikli (belirsizlik proxy'si)
     for c in ["gen_lag24", "gen_lag48", "gen_lag168", "gen_lag336",
               "gen_roll24", "gen_roll168", "err_lag24", "err_lag48", "err_lag168"]:
         f[c] = np.nan  # egitimde tarihceden doldurulur; sunumda son gerceklesmeden
@@ -84,7 +87,7 @@ def train(df_train: pd.DataFrame, target: str = "residual", monotone: bool = Fal
     return booster
 
 
-def save(booster, path: str | None = None) -> str:
+def save(booster, path: str | None = None, meta: dict | None = None) -> str:
     from .. import config as Cfg
     path = path or Cfg.WIND_MODEL_TXT
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -92,7 +95,20 @@ def save(booster, path: str | None = None) -> str:
     with open(path + ".mode", "w") as fh:
         fh.write(getattr(booster, "target_mode", "residual") + "\n")
         fh.write(",".join(getattr(booster, "feat_list", FEATS)) + "\n")
+    if meta is not None:
+        import json
+        with open(path + ".meta.json", "w") as fh:
+            json.dump(meta, fh)
     return path
+
+
+def load_meta(path: str) -> dict:
+    import json
+    try:
+        with open(path + ".meta.json") as fh:
+            return json.load(fh)
+    except OSError:
+        return {"blend_w": 0.0, "bias": {}}
 
 
 def load(path: str | None = None):

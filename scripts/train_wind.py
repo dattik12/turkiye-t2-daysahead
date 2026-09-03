@@ -48,10 +48,20 @@ def main() -> None:
     v = weighted_speed(spd, matrix)
     v10 = weighted_speed(w10, matrix)
     vdir = weighted_direction(wdir, matrix)
+    try:  # ikinci NWP (GFS): yayilim + çapraz kontrol girdisi
+        wg = met.history_wind(start, end, matrix, model="gfs_global", suffix="_gfs")
+        gtab = wg.pivot_table(index="dt", columns="city", values="w100_gfs")
+        vg = weighted_speed(gtab, matrix)
+    except Exception as ex:
+        print(f"GFS alinamadi ({str(ex)[:60]}), IFS-tekli devam")
+        vg = None
 
     f = M.build_features(v, fc)
     f = M.attach_shear(f, v, v10)
     f = M.attach_direction(f, vdir)
+    if vg is not None:
+        f["gfs_w100"] = vg.reindex(f.index).values
+        f["nwp_spread"] = (v - vg).abs().reindex(f.index).values
     # Ufuk-guvenli persistence: D+1 taze lag'leri de doldur (D+2'de maskelenecek)
     back24 = f.index - pd.Timedelta(hours=24)
     back48 = f.index - pd.Timedelta(hours=48)
@@ -100,8 +110,11 @@ def main() -> None:
     print(f"TEST D+1-proxy: model-blend %{s1:.2f} | D+2-proxy: %{s2:.2f} | "
           f"blok-ort %{(s1 + s2) / 2:.2f} | RITM %{s_ritm:.2f} (w={best_w:.2f})")
     if (s1 + s2) / 2 < s_ritm:
-        M.save(b1, os.path.join("models", "wind_lgbm_d1.txt"))
-        M.save(b2, os.path.join("models", "wind_lgbm_d2.txt"))
+        p1 = os.path.join("models", "wind_lgbm_d1.txt")
+        p2 = os.path.join("models", "wind_lgbm_d2.txt")
+        M.save(b1, p1, meta={"blend_w": best_w,
+                             "bias": {str(k): float(v) for k, v in bias.items()}})
+        M.save(b2, p2, meta={"blend_w": best_w, "bias": {}})
         print("Kazanan: dual-model -> models/wind_lgbm_d1|d2.txt")
     else:
         print("Kazanan: RITM — model dosyalari guncellenmedi.")

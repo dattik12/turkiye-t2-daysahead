@@ -89,12 +89,13 @@ python -m scripts.build_ptf_features 2026-09-02 # belirli karar gunu
 (+csv) + `latest.*` kopyalari — 11 kolonluk data contract:
 `datetime (Europe/Istanbul, PK) | horizon (T+1/T+2) | consumption/solar/wind/
 residual/renewable_generation (float32 MW) | renewable_penetration |
-solar_status (ok/zero_night/unconfigured) | wind_status (ritm/lgbm_challenger/
+solar_status (ok/zero_night/unconfigured) | wind_status (blend/ritm/
 fallback) | is_peak_hour (08<=saat<20, uint8)`.
 Export oncesi validate(): 48 satir, gap/dup yok, toplamsallik, residual>0,
 gece GES=0, penetrasyon [0,1) — ihlalde yazim YOK.
-GES: PR=0.921 (Tem'26 TEİAŞ çapası + sıcaklık derate). RES v1: RİTM tahmini (4 denemede
-geçilemedi: LGBM %10.1-10.9 vs %9.57; üretim RİTM'de, challenger dosyası kaldırıldı).
+GES: PR=0.921 (Tem'26 çapası + derate); saatlik şekil 66 lisanslı santrale karşı r=0.88
+(şafak 1s gecikme → santral-ağırlıklı radyasyon TODO). RES: dual-model BLEND %9.46 vs
+RİTM %9.57 (GFS ikinci NWP + ufuk-bazlı D+1/D+2; `wind_status=blend`).
 
 ## 🚀 Kurulum
 

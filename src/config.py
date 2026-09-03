@@ -69,7 +69,9 @@ SOLAR_PR = 0.921            # fit v2: Tem'26 capasi + sicaklik derate'li (calibr
 # Toplam RES kurulu guc: ETKB Tem'26 — 126.476 MW x %12,1 = ~15.304 MW.
 WIND_CAPACITY_MW = 15303.6
 WIND_FARMS_CSV = os.path.join(DATA, "wind", "WIND_FARMS.csv")  # TUREB Oca'26 capali, v1-gecici
-WIND_MODEL_TXT = os.path.join(ROOT, "models", "wind_lgbm.txt")  # yoksa builder RITM'e duser
+WIND_MODEL_TXT = os.path.join(ROOT, "models", "wind_lgbm.txt")  # legacy tekil (kullanim disi)
+WIND_MODEL_D1 = os.path.join(ROOT, "models", "wind_lgbm_d1.txt")  # D+1 dual-model
+WIND_MODEL_D2 = os.path.join(ROOT, "models", "wind_lgbm_d2.txt")  # D+2 dual-model
 WIND_TRAIN_DAYS = 60
 
 # --- v4.4 bayraklar + seed ensemble ---
