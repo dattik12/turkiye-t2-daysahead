@@ -62,9 +62,8 @@ jobs:
             exit 1
           fi
 
-      - name: Build PTF input features (v1 skeleton, non-blocking)
-        # Tuketim hattindan SONRA calisir, onu bloklamaz: solar henuz kalibre degil
-        # (status='unconfigured' yazar). fail ederse run fail OLMAZ (continue-on-error).
+      - name: Build PTF input features (non-blocking)
+        # Tuketim hattindan SONRA calisir, onu bloklamaz (continue-on-error).
         continue-on-error: true
         run: python -m scripts.build_ptf_features
 
@@ -80,3 +79,8 @@ jobs:
           }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: PTF sanity check (latest.parquet butunluk + tazelik)
+        # Sert adim (continue-on-error YOK): tuketim tahmini zaten commitlendi,
+        # bu adim sadece PTF tarafi stale/bozuksa run'i kirmiziya cevirir.
+        run: python -m scripts.check_ptf_latest --max-age-days 2
