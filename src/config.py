@@ -65,6 +65,11 @@ USE_ENSEMBLE = True
 SOLAR_CAPACITY_MW = 27445.0
 SOLAR_PR = 0.829            # fit: Tem'26 TEIAS 5.37 TWh capasi (calibrate_solar_pr.py)
 
+# --- RES / Rüzgar v1 (agirlik matrisi) ---
+# Toplam RES kurulu guc: ETKB Tem'26 — 126.476 MW x %12,1 = ~15.304 MW.
+WIND_CAPACITY_MW = 15303.6
+WIND_FARMS_CSV = os.path.join(DATA, "wind", "WIND_FARMS.csv")  # TUREB Oca'26 capali, v1-gecici
+
 # --- Multi-model ensemble (LGBM + XGB + CatBoost) ---
 ENSEMBLE_MODELS = ["lgbm"]  # production single; per-model tuning workers override
 # --- LEP (TEIAS gun-oncesi plan) ozelligi: is 17:00 TR'de kosar, LEP(T)/LEP(T+1) yayimlidir.
