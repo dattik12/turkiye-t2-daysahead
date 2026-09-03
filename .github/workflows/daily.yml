@@ -4,20 +4,21 @@ name: daily-t2-forecast
 # H1 modeli hedef gunun TEIAS plan oranini feature olarak kullanir (A/B: -0.09pp).
 on:
   schedule:
-    - cron: "0 14 * * *"
+    - cron: "30 6 * * *"   # 09:30 TR: GOP-oncesi sabah tazelemesi (LEP henuz yok, graceful 1.0)
+    - cron: "0 14 * * *"   # 17:00 TR: LEP'li aksam kosusu (ana uretim)
   workflow_dispatch:      # elle de tetiklenebilir
 
 permissions:
   contents: write
 
 concurrency:
-  group: daily-t2
+  group: daily-pipeline
   cancel-in-progress: false
 
 jobs:
   daily:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -74,7 +75,7 @@ jobs:
           git config user.email "daily-bot@users.noreply.github.com"
           git add -A data
           git diff --cached --quiet && echo "degisiklik yok" || {
-            git commit -m "daily: $(date -u +%F) forecast + mape"
+            git commit -m "daily: $(date -u +%F)-$(TZ='Europe/Istanbul' date +%H%M) forecast + mape"
             git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:${GITHUB_REF#refs/heads/}
           }
         env:

@@ -239,11 +239,14 @@ def build_for_decision(decision_date: str | None = None) -> str | None:
     validate(out)  # ihlalde raise -> yazim YOK
     arch = os.path.join(C.PTF_FEATURES_DIR, "archive")
     os.makedirs(arch, exist_ok=True)
-    base = os.path.join(arch, f"ptf_features_{decision_date}")
+    # Kosu etiketi (sabah/aksam): ayni karar gununde iki arsiv cakismasin.
+    tr_now = pd.Timestamp.now(tz=TZ)
+    run = "morning" if tr_now.hour < 12 else "evening"
+    base = os.path.join(arch, f"ptf_features_{decision_date}_{run}")
     out.to_parquet(base + ".parquet", index=False)
     out.to_csv(base + ".csv", index=False)
     shutil.copy(base + ".parquet", os.path.join(C.PTF_FEATURES_DIR, "latest.parquet"))
     shutil.copy(base + ".csv", os.path.join(C.PTF_FEATURES_DIR, "latest.csv"))
     print(f"PTF: {len(out)} satir -> {base}.parquet (+csv) + latest | "
-          f"wind={wind_status} | solar ok={int((out['solar_status'] == 'ok').sum())}/48")
+          f"wind={wind_status} | solar ok={int((out['solar_status'] == 'ok').sum())}/48 | run={run}")
     return base + ".parquet"
