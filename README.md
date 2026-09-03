@@ -84,12 +84,17 @@ python -m scripts.build_ptf_features            # son karar gunu
 python -m scripts.build_ptf_features 2026-09-02 # belirli karar gunu
 ```
 
-Çıktı: `data/forecast/ptf_features/<decision>_ptf.parquet` (+csv) —
-`cons_pred_mw | load_plan_mw | sw_rad_wm2 | solar_pred_mw | wind_pred_mw |
-residual_load_mw (= cons − solar − wind) | solar/wind_status`.
+Çıktı: `data/forecast/ptf_features/archive/ptf_features_YYYY-MM-DD.parquet`
+(+csv) + `latest.*` kopyalari — 11 kolonluk data contract:
+`datetime (Europe/Istanbul, PK) | horizon (T+1/T+2) | consumption/solar/wind/
+residual/renewable_generation (float32 MW) | renewable_penetration |
+solar_status (ok/zero_night/unconfigured) | wind_status (ritm/lgbm_challenger/
+fallback) | is_peak_hour (08<=saat<20, uint8)`.
+Export oncesi validate(): 48 satir, gap/dup yok, toplamsallik, residual>0,
+gece GES=0, penetrasyon [0,1) — ihlalde yazim YOK.
 GES: PR=0.829 (Tem'26 TEİAŞ çapalı). RES v1: RİTM tahmini (holdout'ta LGBM'e
 karşı %9.57 vs %10.14 ile önde); LGBM challenger `models/wind_lgbm.txt`'de
-(`python -m scripts.train_wind`). Kalibrasyon + backfill sonraki aşama.
+(`python -m scripts.train_wind`).
 
 ## 🚀 Kurulum
 
