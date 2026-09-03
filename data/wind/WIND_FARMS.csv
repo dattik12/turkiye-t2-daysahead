@@ -1,8 +1,8 @@
 province,lat,lon,region,region_mw_tureb_ocak26,w,coord_source,weight_status
-Balikesir,39.65,27.89,Marmara,6968.6,0.1362,open-meteo-geocoding-2026-09-03,v1-provisional
-Canakkale,40.16,26.41,Marmara,6968.6,0.1362,open-meteo-geocoding-2026-09-03,v1-provisional
-Istanbul,41.01,28.95,Marmara,6968.6,0.1362,open-meteo-geocoding-2026-09-03,v1-provisional
-Kirklareli,41.74,27.23,Marmara,6968.6,0.1362,open-meteo-geocoding-2026-09-03,v1-provisional
-Izmir,38.41,27.14,Ege,4495.7,0.1758,open-meteo-geocoding-2026-09-03,v1-provisional
-Manisa,38.61,27.43,Ege,4495.7,0.1758,open-meteo-geocoding-2026-09-03,v1-provisional
-Hatay,36.49,36.20,Akdeniz,1324.0,0.1035,belen-gecidi-kullanici-2026-09-04,v1-provisional
+Balikesir,39.65,27.89,Marmara,6968.6,0.3703433952084421,open-meteo-geocoding-2026-09-03,fitted-2026-09-04(NNLS-90gun)
+Canakkale,40.16,26.41,Marmara,6968.6,0.0,open-meteo-geocoding-2026-09-03,fitted-2026-09-04(NNLS-90gun)
+Istanbul,41.01,28.95,Marmara,6968.6,0.0,open-meteo-geocoding-2026-09-03,fitted-2026-09-04(NNLS-90gun)
+Kirklareli,41.74,27.23,Marmara,6968.6,0.2564458670140369,open-meteo-geocoding-2026-09-03,fitted-2026-09-04(NNLS-90gun)
+Izmir,38.41,27.14,Ege,4495.7,0.3732107377775211,open-meteo-geocoding-2026-09-03,fitted-2026-09-04(NNLS-90gun)
+Manisa,38.61,27.43,Ege,4495.7,0.0,open-meteo-geocoding-2026-09-03,fitted-2026-09-04(NNLS-90gun)
+Hatay,36.49,36.2,Akdeniz,1324.0,0.0,belen-gecidi-kullanici-2026-09-04,fitted-2026-09-04(NNLS-90gun)
