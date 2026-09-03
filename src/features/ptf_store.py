@@ -38,10 +38,11 @@ PEAK_START, PEAK_END = 8, 20  # 08:00 <= saat < 20:00
 
 COLS = ["datetime", "horizon", "consumption_pred_mw", "solar_pred_mw",
         "wind_pred_mw", "residual_load_mw", "renewable_generation_mw",
-        "renewable_penetration", "solar_status", "wind_status", "is_peak_hour"]
+        "renewable_penetration", "solar_status", "wind_status", "is_peak_hour",
+        "residual_ramp_1h", "solar_ramp_1h"]
 FLOAT_COLS = ["consumption_pred_mw", "solar_pred_mw", "wind_pred_mw",
               "residual_load_mw", "renewable_generation_mw",
-              "renewable_penetration"]
+              "renewable_penetration", "residual_ramp_1h", "solar_ramp_1h"]
 
 
 def _rad_series(decision: pd.Timestamp) -> pd.Series:
@@ -192,6 +193,9 @@ def build(master_df: pd.DataFrame, rad: pd.Series, decision: pd.Timestamp,
         fc["renewable_generation_mw"] / fc["consumption_pred_mw"]).astype("float32")
     fc["is_peak_hour"] = ((fc["datetime"].dt.hour >= PEAK_START) &
                           (fc["datetime"].dt.hour < PEAK_END)).astype("uint8")
+    # Hizli-kazanim rampa kolonlari (blok-ici turev; ilk saat 0).
+    fc["residual_ramp_1h"] = fc["residual_load_mw"].diff().fillna(0).astype("float32")
+    fc["solar_ramp_1h"] = fc["solar_pred_mw"].fillna(0).diff().fillna(0).astype("float32")
     fc["horizon"] = fc["horizon"].astype("category")
     fc["solar_status"] = fc["solar_status"].astype("category")
     fc["wind_status"] = fc["wind_status"].astype("category")

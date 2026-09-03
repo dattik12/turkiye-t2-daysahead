@@ -86,11 +86,12 @@ python -m scripts.build_ptf_features 2026-09-02 # belirli karar gunu
 ```
 
 Çıktı: `data/forecast/ptf_features/archive/ptf_features_YYYY-MM-DD.parquet`
-(+csv) + `latest.*` kopyalari — 11 kolonluk data contract:
+(+csv) + `latest.*` kopyalari — 13 kolonluk data contract:
 `datetime (Europe/Istanbul, PK) | horizon (T+1/T+2) | consumption/solar/wind/
 residual/renewable_generation (float32 MW) | renewable_penetration |
 solar_status (ok/zero_night/unconfigured) | wind_status (blend/ritm/
-fallback) | is_peak_hour (08<=saat<20, uint8)`.
+fallback) | is_peak_hour (08<=saat<20, uint8) | residual_ramp_1h | solar_ramp_1h
+(blok-ici saatlik turevler, float32)`.
 Export oncesi validate(): 48 satir, gap/dup yok, toplamsallik, residual>0,
 gece GES=0, penetrasyon [0,1) — ihlalde yazim YOK.
 GES: PR=0.921 (Tem'26 çapası + derate); saatlik şekil 66 lisanslı santrale karşı r=0.88
