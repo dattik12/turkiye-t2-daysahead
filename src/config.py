@@ -59,10 +59,11 @@ LGB_PARAMS = dict(
 USE_ENSEMBLE = True
 
 # --- PTF Feature Engine / GES v1 iskelet ---
-# TEIAS aylik istatistikten doldur (lisansli+lisanssiz toplam kurulu guc, MW).
-# None iken solar NaN + status='unconfigured' yazilir (daily run bloklanmaz).
-SOLAR_CAPACITY_MW = None
-SOLAR_PR = 0.80            # performans orani (backfill'de fit edilecek placeholder)
+# Toplam GES kurulu guc (lisansli+lisanssiz), MW.
+# Kaynak: ETKB Temmuz 2026 — toplam 126.476 MW x %21,7 gunes = ~27.445 MW.
+# AYLIK guncelle (hizli buyuyor); backfill'de ay-bazli kapasite serisi kullanilacak.
+SOLAR_CAPACITY_MW = 27445.0
+SOLAR_PR = 0.829            # fit: Tem'26 TEIAS 5.37 TWh capasi (calibrate_solar_pr.py)
 
 # --- Multi-model ensemble (LGBM + XGB + CatBoost) ---
 ENSEMBLE_MODELS = ["lgbm"]  # production single; per-model tuning workers override
