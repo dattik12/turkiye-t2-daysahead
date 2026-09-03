@@ -85,9 +85,11 @@ python -m scripts.build_ptf_features 2026-09-02 # belirli karar gunu
 ```
 
 Çıktı: `data/forecast/ptf_features/<decision>_ptf.parquet` (+csv) —
-`cons_pred_mw | load_plan_mw | sw_rad_wm2 | solar_pred_mw | residual_load_mw | solar_status`.
-Kapasite (`SOLAR_CAPACITY_MW`, TEİAŞ aylık istatistik) tanımlı değilken solar NaN +
-`status='unconfigured'` yazılır, daily run bloklanmaz. Kalibrasyon + backfill sonraki aşama.
+`cons_pred_mw | load_plan_mw | sw_rad_wm2 | solar_pred_mw | wind_pred_mw |
+residual_load_mw (= cons − solar − wind) | solar/wind_status`.
+GES: PR=0.829 (Tem'26 TEİAŞ çapalı). RES v1: RİTM tahmini (holdout'ta LGBM'e
+karşı %9.57 vs %10.14 ile önde); LGBM challenger `models/wind_lgbm.txt`'de
+(`python -m scripts.train_wind`). Kalibrasyon + backfill sonraki aşama.
 
 ## 🚀 Kurulum
 

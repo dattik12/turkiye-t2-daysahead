@@ -87,10 +87,11 @@ def last_full_day(cons: pd.DataFrame) -> pd.Timestamp | None:
 
 
 # ------------------------------------------------------------ OpenMeteo ----
-def om_fetch(url: str, lat: float, lon: float, s: str, e: str, model: str = C.OM_MODEL) -> dict:
+def om_fetch(url: str, lat: float, lon: float, s: str, e: str, model: str = C.OM_MODEL,
+           vars: list | None = None) -> dict:
     params = (f"latitude={lat}&longitude={lon}"
               f"&start_date={s}&end_date={e}"
-              f"&hourly=" + ",".join(C.OM_VARS) +
+              f"&hourly=" + ",".join(vars or C.OM_VARS) +
               f"&models={model}&timezone=Europe/Istanbul&cell_selection=nearest")
     req = urllib.request.Request(f"{url}?{params}", headers={"User-Agent": "Mozilla/5.0"})
     for i in range(6):

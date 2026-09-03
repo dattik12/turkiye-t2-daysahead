@@ -69,6 +69,8 @@ SOLAR_PR = 0.829            # fit: Tem'26 TEIAS 5.37 TWh capasi (calibrate_solar
 # Toplam RES kurulu guc: ETKB Tem'26 — 126.476 MW x %12,1 = ~15.304 MW.
 WIND_CAPACITY_MW = 15303.6
 WIND_FARMS_CSV = os.path.join(DATA, "wind", "WIND_FARMS.csv")  # TUREB Oca'26 capali, v1-gecici
+WIND_MODEL_TXT = os.path.join(ROOT, "models", "wind_lgbm.txt")  # yoksa builder RITM'e duser
+WIND_TRAIN_DAYS = 60
 
 # --- Multi-model ensemble (LGBM + XGB + CatBoost) ---
 ENSEMBLE_MODELS = ["lgbm"]  # production single; per-model tuning workers override
