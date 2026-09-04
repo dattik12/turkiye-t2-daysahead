@@ -1,11 +1,48 @@
-# ⚡ Türkiye Ulusal T+1/T+2 Elektrik Talep Tahmini
+# ⚡ Türkiye Ulusal Fiziksel Denge & PTF Feature Store (T+1 / T+2)
 
 [![daily-t2-forecast](https://github.com/dattik12/turkiye-t2-daysahead/actions/workflows/daily.yml/badge.svg)](https://github.com/dattik12/turkiye-t2-daysahead/actions/workflows/daily.yml)
 
-Her gün **09:30 + 17:00 (Türkiye)** 🇹🇷 EPİAŞ'tan tüketim + RİTM, OpenMeteo ECMWF IFS'ten
-10 il nüfus-ağırlıklı hava çekilir; **T+1/T+2** saatlik tahmin üretilir. Gerçekleşen veri
-geldikçe tahminlerle eşleştirilir ve **MAPE her gün loglanır** — TEİAŞ'ın kendi planıyla karşılaştırmalı.
-Sabah koşusu GÖP-öncesi baz, akşam koşusu LEP'li güncellemedir (06:00 UTC IFS + güncel RİTM).
+Türkiye toptan elektrik piyasası (GÖP/GİP) ve PTF fiyatlama modelleri için **saatlik fiziksel sistem dengesini (Tüketim, GES, RES, Artık Yük ve Rampa Hızları)** üreten, doğrulayan ve arşivleyen operasyonel veri motoru.
+
+Her gün **09:30 (GÖP-öncesi baz)** ve **17:00 (LEP-güncel)** olmak üzere dual-cron ile çalışır; downstream modeller için 13 kolonluk katı veri kontratıyla (`load_ptf_features()`) kullanıma hazır teslimat yapar.
+
+---
+
+### 🏛️ Sistem Mimarisi & Fiziksel Denge Kontratı
+
+Fiyatı doğrudan belirleyen liyakat eğrisi (merit-order) dinamiklerini sağlamak adına 3 bağımsız fiziksel hat tek potada eritilir:
+
+$$\text{residual\_load\_mw} = \text{consumption\_pred\_mw} - (\text{solar\_pred\_mw} + \text{wind\_pred\_mw})$$
+
+```python
+# Downstream modeller için tek satırlık doğrulamalı okuma
+from src.features.ptf_store import load_ptf_features
+
+df = load_ptf_features()  # 48 satır (T+1/T+2) x 13 kolon
+```
+
+| Fiziksel Bileşen | Motor & Metodoloji | Doğrulama & Benchmark Başarısı |
+| --- | --- | --- |
+| **1. Tüketim (Talep)** | v4.5 Ufuk-güvenli LightGBM + Kapılı Rejim MoE (10 il nüfus ağırlıklı ECMWF IFS) | **T+1 %1,38 / T+2 %2,11 MAPE** *(30-gün A/B; resmi TEİAŞ %3,01 planını ezdi)* |
+| **2. Güneş (GES)** | 27,4 GW ETKB kapasitesi, PR=0,921 fiziksel fit, termal derating, zenit gece maskesi | **r = 0,88 şekil korelasyonu** *(66 lisanslı GES verisine karşı)* |
+| **3. Rüzgar (RES)** | 7-hub NNLS coğrafi ağırlık (%71,9 Marmara-Ege) + Dual-LGBM RİTM blend | **%9,22 MAPE** *(sistem operatörü RİTM %9,57'yi geride bıraktı)* |
+| **4. Piyasa Sinyalleri** | Saatlik rampa hızları (`diff`), penetrasyon payı, pik-saat etiketi | **Katı Kontrat:** gap/dup yok, gece GES=0, toplamsallık sapması <0,01 MW |
+
+---
+
+### 📊 13 Kolonluk PTF Data Contract (`latest.parquet`)
+
+Downstream fiyat modeline `data/forecast/ptf_features/latest.parquet` üzerinden teslim edilen şema:
+
+* **Zaman & Ufuk:** `datetime` (Europe/Istanbul, PK), `horizon` (`T+1`, `T+2`)
+* **Fiziksel Güçler (float32 MW):** `consumption_pred_mw`, `solar_pred_mw`, `wind_pred_mw`, `renewable_generation_mw`
+* **Merit-Order & Net Yük:** `residual_load_mw`, `renewable_penetration` ($[0, 1)$)
+* **Dinamik Rampa Baskısı:** `residual_ramp_1h` ($\Delta \text{Net Yük}$), `solar_ramp_1h` (akşam çöküş hızı)
+* **Piyasa Durum Bayrakları:** `is_peak_hour` (08:00-20:00), `solar_status` (`ok`/`zero_night`), `wind_status` (`blend`/`ritm`)
+
+> ⚠️ **Fail-Fast Prensibi:** Eksik meteoroloji veya kontrat ihlalinde (negatif yük, gece GES üretimi vb.) sessizce bozuk veri yazılmaz; `validate()` pipeline'ı durdurur.
+
+---
 
 > 🎯 *"Veri seti son günü 18 Ağustos ise bize lazım olan 20 Ağustos."*
 
