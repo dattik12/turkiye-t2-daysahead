@@ -202,6 +202,27 @@ def build(master_df: pd.DataFrame, rad: pd.Series, decision: pd.Timestamp,
     return fc[COLS]
 
 
+def load_ptf_features(path: str | None = None) -> pd.DataFrame:
+    """Handoff reader: downstream PTF modelinin tek-satirlik erisimi.
+
+    latest.parquet'yi okur, 13-kolon semasini dogrular, DataFrame doner.
+    validate() 48-satir sarti kosmaz (sema + toplamsallik + aralik kontrolu).
+    """
+    p = path or os.path.join(C.PTF_FEATURES_DIR, "latest.parquet")
+    df = pd.read_parquet(p)
+    if list(df.columns) != COLS:
+        raise ValueError(f"kolon semasi uyusmuyor: {list(df.columns)}")
+    tol = 1e-2
+    con = (df["consumption_pred_mw"] - df["solar_pred_mw"].fillna(0)
+           - df["wind_pred_mw"].fillna(0) - df["residual_load_mw"]).abs().max()
+    if con > tol:
+        raise ValueError(f"toplamsallik ihlali (max sapma {con})")
+    pen = df["renewable_penetration"]
+    if ((pen < 0.0).any() or (pen >= 1.0).any()):
+        raise ValueError("penetrasyon [0,1) disinda")
+    return df
+
+
 def validate(df: pd.DataFrame) -> None:
     """Export oncesi invariant'lar; ihlalde ValueError (yazim yapilmaz)."""
     if len(df) != 48:
