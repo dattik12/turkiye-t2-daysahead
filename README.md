@@ -66,12 +66,37 @@ zamanda modelin **canlı kanıt defteridir**.
 ## 📁 Yapı
 
 ```
-src/        config · data (EPİAŞ+OpenMeteo) · features · model · forecast · scoring
-scripts/    bootstrap · daily_run (03:00) · backtest_sim · export_backtest · make_readme_chart
-.github/    daily.yml — cron 03:00 TR + otomatik commit
-data/       dataset/ (2016→bugün) · weather/ · results/ · exports/
+src/        config · data (EPİAŞ+OpenMeteo) · features (+ptf_store) · model · forecast · scoring
+(v4.4: ufuk-güvenli lag seti, termal-yük H1, bayram v2, rezidü düzeltme; `scripts/_leak_check.py`)
+src/consumption/  v4.3 tuketim hatti referans paketi (moduller tasinmadi)
+src/solar/        GES v1 iskelet: radiation (OpenMeteo SW) · model (rad->MW) · pull_actual (best-effort)
+scripts/    bootstrap · daily_run (03:00) · build_ptf_features · backtest_sim · export_backtest · make_readme_chart
+.github/    daily.yml — cron 03:00 TR + PTF adimi (non-blocking) + otomatik commit
+data/       dataset/ (2016→bugün) · weather/ · results/ · exports/ · forecast/ptf_features/
 docs/       performance.png (README grafiği, betikten üretilir)
 ```
+
+## ⚡ PTF Input Feature Engine (v1 iskelet)
+
+Tüketim hattı (v4.3) aynen durur; depo ayrıca PTF modeline girdi üretir:
+
+```bash
+python -m scripts.build_ptf_features            # son karar gunu
+python -m scripts.build_ptf_features 2026-09-02 # belirli karar gunu
+```
+
+Çıktı: `data/forecast/ptf_features/archive/ptf_features_YYYY-MM-DD.parquet`
+(+csv) + `latest.*` kopyalari — 13 kolonluk data contract:
+`datetime (Europe/Istanbul, PK) | horizon (T+1/T+2) | consumption/solar/wind/
+residual/renewable_generation (float32 MW) | renewable_penetration |
+solar_status (ok/zero_night/unconfigured) | wind_status (blend/ritm/
+fallback) | is_peak_hour (08<=saat<20, uint8) | residual_ramp_1h | solar_ramp_1h
+(blok-ici saatlik turevler, float32)`.
+Export oncesi validate(): 48 satir, gap/dup yok, toplamsallik, residual>0,
+gece GES=0, penetrasyon [0,1) — ihlalde yazim YOK.
+GES: PR=0.921 (Tem'26 çapası + derate); saatlik şekil 66 lisanslı santrale karşı r=0.88
+(şafak 1s gecikme → santral-ağırlıklı radyasyon TODO). RES: dual-model BLEND %9.46 vs
+RİTM %9.57 (GFS ikinci NWP + ufuk-bazlı D+1/D+2; `wind_status=blend`).
 
 ## 🚀 Kurulum
 

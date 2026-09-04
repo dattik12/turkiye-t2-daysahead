@@ -10,7 +10,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from . import config as C
+from .. import config as C
 
 # ----------------------------------------------------------- takvim/bayram ----
 HOLIDAY_DATES = {
@@ -98,6 +98,31 @@ def calendar_cols(idx: pd.DatetimeIndex) -> pd.DataFrame:
     d["is_ramadan"] = ds.map(
         lambda x: any(str(x.year) in RAMADAN and RAMADAN[str(x.year)][0] <= x.isoformat() <= RAMADAN[str(x.year)][1]
                       for _ in [0])).astype(np.int8).to_numpy()
+    # --- v4.4 bayram v2: blok-ici konum + sonrasi donus sayaci + ramazan gunu ---
+    sorted_rel_all = sorted(rel_set)
+    def day_index(x):
+        if x not in rel_set:
+            return 0
+        i = sorted_rel_all.index(x)
+        n = 1
+        while i - n >= 0 and (x - sorted_rel_all[i - n]).days == n:
+            n += 1
+        return n - 1 + 1  # blokun kacinci gunu (1-bazli)
+    d["holiday_day_index"] = ds.map(day_index).astype(np.int8).to_numpy()
+    def after_count(x):
+        if x in rel_set:
+            return 0
+        for k in range(1, 8):
+            if (x - pd.Timedelta(days=k)) in rel_set:
+                return k
+        return 0
+    d["days_after_holiday"] = ds.map(after_count).astype(np.int8).to_numpy()
+    def ram_day(x):
+        y = str(x.year)
+        if y in RAMADAN and RAMADAN[y][0] <= x.isoformat() <= RAMADAN[y][1]:
+            return (x - pd.Timestamp(RAMADAN[y][0]).date()).days + 1
+        return 0
+    d["ramadan_day"] = ds.map(ram_day).astype(np.int8).to_numpy()
     return d
 
 
@@ -106,12 +131,14 @@ def precompute(cons: pd.Series) -> pd.DataFrame:
     """Yuk gecmisi lag/rolling/gunluk ozet + robust medyan (vektorize, once hesaplanir)."""
     y = cons
     P = pd.DataFrame(index=y.index)
-    for lg in [24, 48, 72, 96, 120, 144, 168, 336]:
+    for lg in [24, 48, 72, 96, 120, 144, 168, 216, 336]:
         P[f"lag{lg}"] = y.shift(lg)
     cols = {f"sh{h}": y.shift(h) for h in range(24, 192 + 1, 24)}
     same = pd.concat(cols, axis=1)
     P["samehr_7d_48"] = same[["sh48", "sh72", "sh96", "sh120", "sh144", "sh168", "sh192"]].mean(axis=1)
     P["samehr_7d_24"] = same.mean(axis=1)
+    # v4.4 ufuk-guvenli: H2'nin tum saatlerinde karar-ani bilinen bilesenler (t-72 ve odasi)
+    P["samehr_6d_72"] = same[["sh72", "sh96", "sh120", "sh144", "sh168", "sh192"]].mean(axis=1)
     P["samehr_median_3d"] = pd.concat([y.shift(h) for h in [24, 48, 72]], axis=1).median(axis=1)
     P["samehr_median_7d"] = pd.concat([y.shift(h) for h in range(24, 168 + 1, 24)], axis=1).median(axis=1)
     r24 = y.rolling(24, min_periods=24).mean()
@@ -119,6 +146,7 @@ def precompute(cons: pd.Series) -> pd.DataFrame:
     r168 = y.rolling(168, min_periods=168).mean()
     P["roll24_prev1"] = r24.shift(1); P["roll24max_prev1"] = r24max.shift(1); P["roll168_prev1"] = r168.shift(1)
     P["roll24_prev24"] = r24.shift(24); P["roll24max_prev24"] = r24max.shift(24); P["roll168_prev24"] = r168.shift(24)
+    P["roll24_prev72"] = r24.shift(72); P["roll24max_prev72"] = r24max.shift(72); P["roll168_prev72"] = r168.shift(72)
     g = y.groupby(y.index.normalize())
     dm, dmax, dmin = g.mean(), g.max(), g.min()
 
@@ -147,13 +175,29 @@ def lep_rel_feature(lp: pd.Series, S: pd.Series, idx) -> np.ndarray:
     return np.where(np.isfinite(rel), rel, 1.0)
 
 
-BASE_H1 = ["lag24", "lag48", "lag72", "lag168", "lag336", "samehr_7d_24",
-           "roll24_prev1", "roll24max_prev1", "roll168_prev1",
-           "day_mean_D1", "day_max_D1", "day_min_D1", "day_mean_D1_2", "day_mean_D1_8", "day_delta_1"]
-BASE_H2 = ["lag48", "lag72", "lag96", "lag120", "lag144", "lag168", "lag336", "samehr_7d_48",
+BASE_H1 = ["lag24", "lag48", "lag72", "lag96", "lag120", "lag144", "lag168", "lag336", "samehr_7d_24",
            "roll24_prev24", "roll24max_prev24", "roll168_prev24",
+           "day_mean_D1", "day_max_D1", "day_min_D1", "day_mean_D1_2", "day_mean_D1_8", "day_delta_1"]
+# v4.4 H2 ufuk-guvenli: tum bilesenler karar-aninda bilinen (t-72 ve otesi).
+# Cikarilanlar (uretimde NaN/eksik-ortalamaliydi): lag48, samehr_7d_48, medianlar, roll_prev24'ler.
+BASE_H2 = ["lag72", "lag96", "lag120", "lag144", "lag168", "lag216", "lag336", "samehr_6d_72",
+           "roll24_prev72", "roll24max_prev72", "roll168_prev72",
            "day_mean_D2", "day_max_D2", "day_min_D2", "day_mean_D2_3", "day_mean_D2_9", "day_delta_2"]
 CONTRA = ["samehr_median_3d", "samehr_median_7d"]  # v5.2'ye eklenen surekli (yuk-side) feature'lar
+
+
+def future_thermal_load(wnat_full: pd.DataFrame) -> pd.DataFrame:
+    """v4.4: satir saati t icin t+1..t+24 / t+1..t+48 CDD+HDD toplamlari.
+    Nedensellik: cagri aninda cercevede olan hava kullanilir (inference'ta IFS
+    tahmini, egitimde gerceklesen — ayni skew sinifi, concurrent HDD/CDD ile es)."""
+    out = pd.DataFrame(index=wnat_full.index)
+    for v in ["CDD", "HDD"]:
+        if v not in wnat_full:
+            continue
+        s = wnat_full[v].astype(float)
+        out[f"{v}_next24"] = s.shift(-24).rolling(24, min_periods=24).sum()
+        out[f"{v}_next48"] = s.shift(-48).rolling(48, min_periods=48).sum()
+    return out
 
 
 # --------------------------------------------------------- hava manyaklar ----
@@ -221,6 +265,11 @@ def make_row(P: pd.DataFrame, wnat: pd.DataFrame, wdyn: pd.DataFrame, dayfrac: p
     X["temp2"] = X["temperature_2m"] ** 2
     h = X["hour"]
     X["temp_hour"] = X["temperature_2m"] * np.cos(2 * np.pi * h / 24)
+    if getattr(C, "V44_THERMAL", True) and horizon == 1:  # v4.4: termal-yuk yalniz H1
+        # Gerekce: H2'nin next48'i D+3/D+4 IFS'e dayanir (dusuk skill) -> A/B'de +0.058pp zarar.
+        th = future_thermal_load(wnat).reindex(idx)
+        for c in th.columns:
+            X[c] = th[c].to_numpy()
     if cont:   # MANYAK feature'lar yalnizca deneysel (cont=True) — regulasyon gerekir, uretim kullanmaz
         wd = wdyn.reindex(idx)
         for c in wd.columns:

@@ -15,6 +15,7 @@ WEATHER_CITIES_PARQUET = os.path.join(WEATHER_DIR, "histfc_cities.parquet")
 FORECAST_MASTER = os.path.join(RESULTS_DIR, "forecast_results.csv")      # her gunun tahmini
 MAPE_HISTORY = os.path.join(RESULTS_DIR, "mape_history.csv")             # gunluk skor logu
 BACKTEST_CSV = os.path.join(RESULTS_DIR, "backtest_sim_2025_2026.csv")   # simule backtest
+PTF_FEATURES_DIR = os.path.join(DATA, "forecast", "ptf_features")        # PTF input feature store
 
 TZ = "Europe/Istanbul"          # UTC+3 sabit
 DECISION_HOUR_TR = "03:00"      # gunluk calisma saati (TR)
@@ -57,7 +58,28 @@ LGB_PARAMS = dict(
 # v4.3 + v5.2 ensemble icin her ufka iki model (temel + manyak-surekli)
 USE_ENSEMBLE = True
 
-# --- Multi-model ensemble (LGBM + XGB + CatBoost) ---
+# --- PTF Feature Engine / GES v1 iskelet ---
+# Toplam GES kurulu guc (lisansli+lisanssiz), MW.
+# Kaynak: ETKB Temmuz 2026 — toplam 126.476 MW x %21,7 gunes = ~27.445 MW.
+# AYLIK guncelle (hizli buyuyor); backfill'de ay-bazli kapasite serisi kullanilacak.
+SOLAR_CAPACITY_MW = 27445.0
+SOLAR_PR = 0.921            # fit v2: Tem'26 capasi + sicaklik derate'li (calibrate_solar_pr.py)
+
+# --- RES / Rüzgar v1 (agirlik matrisi) ---
+# Toplam RES kurulu guc: ETKB Tem'26 — 126.476 MW x %12,1 = ~15.304 MW.
+WIND_CAPACITY_MW = 15303.6
+WIND_FARMS_CSV = os.path.join(DATA, "wind", "WIND_FARMS.csv")  # TUREB Oca'26 capali, v1-gecici
+WIND_MODEL_TXT = os.path.join(ROOT, "models", "wind_lgbm.txt")  # legacy tekil (kullanim disi)
+WIND_MODEL_D1 = os.path.join(ROOT, "models", "wind_lgbm_d1.txt")  # D+1 dual-model
+WIND_MODEL_D2 = os.path.join(ROOT, "models", "wind_lgbm_d2.txt")  # D+2 dual-model
+WIND_TRAIN_DAYS = 60
+
+# --- v4.4 bayraklar + seed ensemble ---
+V44_THERMAL = False     # KAPALI: Tem-A/B'de T+1 +0.118pp zarar (Agu'da -0.012 fayda);
+                        # CDH tepkisi ilk-sicak rejiminde kalibre degil. Kod duruyor, bayrakla acilir.
+V44_RESID = True      # (saat, gun-tipi) shrinkage rezidu duzeltmesi
+V45_REGIME = True     # v4.5 MoE: rejim-hucreli (bayram x ramazan x saat-blogu) uzmanlar
+ENSEMBLE_SEEDS = [42]  # v4.4: 3-seed A/B'de gurultu cikti (T+1 +0.012/T+2 -0.069) -> tek seed, maliyet 1x
 ENSEMBLE_MODELS = ["lgbm"]  # production single; per-model tuning workers override
 # --- LEP (TEIAS gun-oncesi plan) ozelligi: is 17:00 TR'de kosar, LEP(T)/LEP(T+1) yayimlidir.
 # H1'e scale-free oran girer: lep(gun(t),saat)/samehr_7d_24(t-48s) -> A/B: H1 %1.98->%1.89 (81g)

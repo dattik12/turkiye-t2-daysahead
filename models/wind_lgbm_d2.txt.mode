@@ -1,0 +1,2 @@
+residual
+w100,w100_v2,w100_v3,shear,hour,dow,is_weekend,wdir_sin,wdir_cos,wdir_sector,ritm_fc,gen_lag168,gen_lag336,gen_roll168,err_lag168,gfs_w100,nwp_spread

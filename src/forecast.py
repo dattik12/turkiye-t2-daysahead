@@ -80,7 +80,9 @@ class Engine:
         d2 = decision_date + pd.Timedelta(days=2)
         target_end = d2 + pd.Timedelta(hours=23)
 
-        nat, wdyn, cw, seg_urban, seg_ind = self.weather_tables(target_end)
+        # v4.4: termal-yuk agregatlari (CDD/HDD_next48) hedef saatlerin 48s sonrasini
+        # ister -> hava cercevesini +2 gun genislet (IFS 16-gun ufku icinde, ucuz).
+        nat, wdyn, cw, seg_urban, seg_ind = self.weather_tables(target_end + pd.Timedelta(days=2))
         dayfrac = self.dayfrac_def.reindex(pd.date_range(self.P.index.min(), target_end, freq="h"))
 
         train_cut = decision_date - pd.Timedelta(days=C.TRAIN_DAYS)
@@ -113,6 +115,48 @@ class Engine:
                 return None
             return {"lep_rel": F.lep_rel_feature(self.cons["load_plan"], Peff["samehr_7d_24"], idx)}
 
+        # --- v4.4 rezidu duzeltme: son 90 gun rezidulerinden (saat, gun-tipi) hucre bias'i.
+        # Karar gununden turetilir; egitim + cache (backtest) dallarinda aynen calisir.
+        def _resid(models, hz, base, day_idx, d1models=None):
+            if not getattr(C, "V44_RESID", True):
+                return base
+            tr_idx = self.cons["rt_cons"].dropna().index
+            tr_idx = tr_idx[(tr_idx < decision_date.normalize())
+                            & (tr_idx >= decision_date - pd.Timedelta(days=90))]
+            if len(tr_idx) == 0:
+                return base
+            d1p = None
+            if hz == 2 and d1models is not None:  # H2 egitim satirlari icin D+1 beslemesi
+                t24 = tr_idx - pd.Timedelta(hours=24)
+                d1p = pd.Series(np.asarray(M.predict_pair(
+                    d1models, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind,
+                    t24, 1, extra_cols=lep_extra(t24, 1))), index=tr_idx)
+            tr = M.predict_pair(models, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind,
+                                tr_idx, hz, d1_pred=d1p,
+                                extra_cols=lep_extra(tr_idx, hz) if hz == 1 else None)
+            y = self.cons["rt_cons"].reindex(tr_idx)
+            r = (y - pd.Series(np.asarray(tr), index=tr_idx)).dropna()
+            if r.empty:
+                return base
+            out = np.asarray(base) + M.residual_adjust(r, r.index, day_idx)
+            if getattr(C, "V45_REGIME", True):  # v4.5 MoE: kapili karisim (gated)
+                # Bayram/Ramazan satirlarinda rejim uzmani, normalde saat uzmani.
+                # Ikisi ayni anda uygulanmaz (cift duzeltme olur).
+                from src.features import calendar_cols as _cc
+                cal = _cc(day_idx)
+                gate = ((cal["is_holiday_effect"] > 0)
+                        | (cal["ramadan_day"] > 0)).to_numpy()
+                if gate.any():
+                    reg = M.regime_adjust(r, r.index, day_idx)
+                    base_arr = np.asarray(base)
+                    res_arr = M.residual_adjust(r, r.index, day_idx)
+                    out = np.where(gate, base_arr + reg, base_arr + res_arr)
+            # Guardrail: toplam duzeltme |%1.5| ile sinirli (Temmuz-2026 dersi:
+            # asiri sicakta amplifikasyon dongusu bias'i ikiye katladi).
+            cap = 0.015 * np.abs(np.asarray(base, dtype=float))
+            out = np.asarray(base) + np.clip(np.asarray(out) - np.asarray(base), -cap, cap)
+            return out
+
         if models_cache is None:
             if use_multi:
                 m1 = TE.train_engine_multi(Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, self.cons["rt_cons"], train_idx, 1)
@@ -141,6 +185,7 @@ class Engine:
                                     extra_cols=lep_extra(days1, 1))
 
         d1_feed = pd.Series(p1, index=days1)
+        p1 = _resid(m1, 1, p1, days1)
         if use_multi and isinstance(m2, dict) and "lgbm" in m2:
             p2_dict = ME.predict_multi(m2, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days2, 2, d1_pred=d1_feed)
             # optional stacking if weights exist
@@ -151,6 +196,7 @@ class Engine:
                 p2 = np.mean(list(p2_dict.values()), axis=0) if len(p2_dict) > 1 else list(p2_dict.values())[0]
         else:
             p2 = M.predict_pair(m2, Peff, nat, wdyn, dayfrac, cw, seg_urban, seg_ind, days2, 2, d1_pred=d1_feed)
+            p2 = _resid(m2, 2, p2, days2, d1models=m1)
 
         out = pd.DataFrame({"dt": days1.append(days2),
                             "pred_mw": np.concatenate([p1, p2]),
