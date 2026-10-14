@@ -273,8 +273,12 @@ def build_for_decision(decision_date: str | None = None) -> str | None:
     arch = os.path.join(C.PTF_FEATURES_DIR, "archive")
     os.makedirs(arch, exist_ok=True)
     # Kosu etiketi (sabah/aksam): ayni karar gununde iki arsiv cakismasin.
+    # Workflow PTF_RUN_SLOT verirse onu kullan: GitHub kuyrugu kosulari
+    # saatlerce geciktirince saat kurali sasip sabah vintage'i aksam adiyla
+    # eziliyordu; slot cron'dan gelir. Yoksa TR saatine dus.
     tr_now = pd.Timestamp.now(tz=TZ)
-    run = "morning" if tr_now.hour < 12 else "evening"
+    slot = (os.environ.get("PTF_RUN_SLOT") or "").strip().lower()
+    run = slot if slot in ("morning", "evening") else ("morning" if tr_now.hour < 12 else "evening")
     base = os.path.join(arch, f"ptf_features_{decision_date}_{run}")
     out.to_parquet(base + ".parquet", index=False)
     out.to_csv(base + ".csv", index=False)

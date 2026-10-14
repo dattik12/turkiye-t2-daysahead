@@ -18,7 +18,7 @@ concurrency:
 jobs:
   daily:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45          # 3 deneme + 2x10dk bekleme dongusune pay
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,6 +62,18 @@ jobs:
             echo "PIPELINE_FAILED_3_ATTEMPTS — gunluk tahmin uretilemedi"
             exit 1
           fi
+
+      - name: Resolve PTF run slot
+        # GitHub kuyrugu kosulari saatlerce geciktirebiliyor; arsiv etiketi kosu
+        # saatinden degil CRON slotundan gelsin (sabah/aksam vintage'i korunur).
+        # Elle tetiklemede bos birakilir -> ptf_store TR saat kuralina duser.
+        shell: bash
+        run: |
+          case '${{ github.event.schedule }}' in
+            "30 6 * * *") echo "PTF_RUN_SLOT=morning" >> "$GITHUB_ENV" ;;
+            "0 14 * * *") echo "PTF_RUN_SLOT=evening" >> "$GITHUB_ENV" ;;
+            *) echo "PTF_RUN_SLOT=" >> "$GITHUB_ENV" ;;
+          esac
 
       - name: Build PTF input features (non-blocking)
         # Tuketim hattindan SONRA calisir, onu bloklamaz (continue-on-error).

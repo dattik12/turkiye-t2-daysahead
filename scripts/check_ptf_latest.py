@@ -8,8 +8,9 @@ Kontroller:
   1) dosya var + okunabiliyor,
   2) ptf_store.validate() invariant'lari (48 satir, gap/dup, toplamsallik,
      residual>0, gece sifir, penetrasyon),
-  3) tazelik: dosya ici max karar gunu <= max-age-days eski (varsayilan 2 —
-     retry/gecikme payi; otesi STALE).
+  3) tazelik: blok gecikmesi = (bugun - en yeni hedef gun + 1) gun; normal
+     durumda blok yarina kadar gider -> 0. max-age-days (varsayilan 2)
+     asilirsa STALE (eski formul ~6 gunluk sessiz durmayi kaciriyordu).
 Cikis kodu 0 = saglikli, 1 = bozuk/stale (CI kirmizi).
 """
 from __future__ import annotations
@@ -40,9 +41,10 @@ def check(path: str, max_age_days: int) -> list[str]:
         problems.append(f"invariant ihlali: {ex}")
     try:
         newest = pd.to_datetime(df["datetime"]).max().tz_localize(None).normalize()
-        age = (pd.Timestamp.now().normalize() - newest).days - 2  # D+2 ufku payi
-        if age > max_age_days:
-            problems.append(f"STALE: en yeni hedef gun {newest.date()} ({age} gun geride)")
+        # Gecikme (gun): blok normalde yarina kadar gider -> 0; kacirilan gun +1.
+        lag = (pd.Timestamp.now().normalize() - newest).days + 1
+        if lag > max_age_days:
+            problems.append(f"STALE: en yeni hedef gun {newest.date()} ({lag} gun geride)")
     except Exception as ex:
         problems.append(f"tazelik olculemedi: {str(ex)[:80]}")
     return problems

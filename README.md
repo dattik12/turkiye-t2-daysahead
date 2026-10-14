@@ -24,6 +24,8 @@ Contract Invariants:
 - Strict bounds: residual_load_mw > 0 | night_solar == 0.0 | tolerance < 0.01 MW
 ```
 
+> **Horizon convention:** `T` = last fully completed settlement day (the decision day). Each run publishes exactly 48 hours anchored to `T`: **T+1 = current day, T+2 = next day** — never beyond. Archive snapshots carry `T`'s date in their filename.
+
 ---
 
 ## 📊 Core Benchmarks
