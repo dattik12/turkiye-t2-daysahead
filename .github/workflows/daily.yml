@@ -85,6 +85,12 @@ jobs:
         continue-on-error: true
         run: python -m scripts.collect_fcast_snapshot
 
+      - name: Snapshot hydro/dam data (non-blocking)
+        # Baraj servisleri gunluk snapshot dondurur ve API gecmisi YOK:
+        # bugun kaydedilmezse o gun kalici kayip. Arşiv: data/hydro/raw/.
+        continue-on-error: true
+        run: python -m scripts.collect_hydro_snapshot
+
       - name: Commit results
         shell: bash
         run: |
