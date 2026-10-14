@@ -1,5 +1,5 @@
 {
- "captured_at": "2026-10-14T17:42:02.083022+03:00",
+ "captured_at": "2026-10-14T21:37:32.072046+03:00",
  "slot": "evening",
  "source": "EPIAS Seffaflik (eptr2)",
  "note": "date parametresi yok; bugunun snapshot'i, 17:00 TSİ sonrasi nihai",
@@ -10,15 +10,23 @@
     "basin": "Doğu Akdeniz",
     "dam": "ERMENEK",
     "activeFullnessAmount": 66.77120293006753,
-    "id": 97247014,
+    "id": 97240985,
     "damId": 54
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Doğu Akdeniz",
+    "dam": "BALKUSAN",
+    "activeFullnessAmount": 4.976303317535545,
+    "id": 97241002,
+    "damId": 55
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Doğu Akdeniz",
     "dam": "ALAKÖPRÜ",
     "activeFullnessAmount": 38.25968560465404,
-    "id": 97247036,
+    "id": 97241008,
     "damId": 56
    },
    {
@@ -26,7 +34,7 @@
     "basin": "Seyhan",
     "dam": "ÇATALAN",
     "activeFullnessAmount": 16.33487526846192,
-    "id": 97240882,
+    "id": 97240953,
     "damId": 57
    },
    {
@@ -34,7 +42,7 @@
     "basin": "Seyhan",
     "dam": "BAHÇELİK",
     "activeFullnessAmount": 47.532967032967036,
-    "id": 97240903,
+    "id": 97240974,
     "damId": 59
    },
    {
@@ -42,7 +50,7 @@
     "basin": "Seyhan",
     "dam": "YEDİGÖZE",
     "activeFullnessAmount": 81.75525010816388,
-    "id": 97247011,
+    "id": 97240982,
     "damId": 60
    },
    {
@@ -50,7 +58,7 @@
     "basin": "Seyhan",
     "dam": "FEKE-2",
     "activeFullnessAmount": 49.62936816096011,
-    "id": 97240908,
+    "id": 97240979,
     "damId": 61
    },
    {
@@ -58,7 +66,7 @@
     "basin": "Seyhan",
     "dam": "MENGE HES",
     "activeFullnessAmount": 43.32304980167475,
-    "id": 97240905,
+    "id": 97240976,
     "damId": 62
    },
    {
@@ -66,7 +74,7 @@
     "basin": "Seyhan",
     "dam": "KÖPRÜ",
     "activeFullnessAmount": 58.4038950042337,
-    "id": 97247019,
+    "id": 97240990,
     "damId": 63
    },
    {
@@ -74,7 +82,7 @@
     "basin": "Seyhan",
     "dam": "KAVŞAKBENDİ HES",
     "activeFullnessAmount": 83.5978835978836,
-    "id": 97247026,
+    "id": 97240997,
     "damId": 64
    },
    {
@@ -82,7 +90,7 @@
     "basin": "Seyhan",
     "dam": "GÜMÜŞÖREN",
     "activeFullnessAmount": 61.41639344262295,
-    "id": 97247040,
+    "id": 97247112,
     "damId": 65
    },
    {
@@ -90,15 +98,15 @@
     "basin": "Seyhan",
     "dam": "GÖKTAŞ-1",
     "activeFullnessAmount": 38.421052631578945,
-    "id": 97247033,
+    "id": 97241005,
     "damId": 66
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Ceyhan",
     "dam": "ASLANTAŞ",
-    "activeFullnessAmount": 48.30508474576271,
-    "id": 97240873,
+    "activeFullnessAmount": 48.26225624202661,
+    "id": 97240944,
     "damId": 67
    },
    {
@@ -106,7 +114,7 @@
     "basin": "Ceyhan",
     "dam": "MENZELET",
     "activeFullnessAmount": 70.51922809940302,
-    "id": 97240890,
+    "id": 97240961,
     "damId": 68
    },
    {
@@ -114,7 +122,7 @@
     "basin": "Ceyhan",
     "dam": "SIR",
     "activeFullnessAmount": 65.55555555555556,
-    "id": 97240899,
+    "id": 97240970,
     "damId": 69
    },
    {
@@ -122,7 +130,7 @@
     "basin": "Ceyhan",
     "dam": "KOZAN",
     "activeFullnessAmount": 56.658151568743044,
-    "id": 97240894,
+    "id": 97240965,
     "damId": 70
    },
    {
@@ -130,15 +138,15 @@
     "basin": "Ceyhan",
     "dam": "KARTALKAYA",
     "activeFullnessAmount": 49.47132727951238,
-    "id": 97247027,
+    "id": 97240998,
     "damId": 72
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Ceyhan",
     "dam": "BERKE ",
-    "activeFullnessAmount": 90.58609271523179,
-    "id": 97247025,
+    "activeFullnessAmount": 89.95695364238411,
+    "id": 97240996,
     "damId": 73
    },
    {
@@ -146,23 +154,23 @@
     "basin": "Ceyhan",
     "dam": "KILAVUZLU",
     "activeFullnessAmount": 75.37537537537537,
-    "id": 97247017,
+    "id": 97240988,
     "damId": 74
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Ceyhan",
     "dam": "KANDİL HES",
-    "activeFullnessAmount": 52.61300309597523,
-    "id": 97247028,
+    "activeFullnessAmount": 52.424148606811144,
+    "id": 97240999,
     "damId": 75
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Ceyhan",
     "dam": "SARIGÜZEL HES",
-    "activeFullnessAmount": 61.42820578448938,
-    "id": 97247024,
+    "activeFullnessAmount": 61.888917327873045,
+    "id": 97240995,
     "damId": 76
    },
    {
@@ -170,7 +178,7 @@
     "basin": "Doğu Karadeniz",
     "dam": "KÜRTÜN",
     "activeFullnessAmount": 41.79048335527553,
-    "id": 97240885,
+    "id": 97240956,
     "damId": 77
    },
    {
@@ -178,7 +186,7 @@
     "basin": "Doğu Karadeniz",
     "dam": "TORUL",
     "activeFullnessAmount": 8.749828837464056,
-    "id": 97240902,
+    "id": 97240973,
     "damId": 78
    },
    {
@@ -186,7 +194,7 @@
     "basin": "Doğu Karadeniz",
     "dam": "TOPÇAM-ORDU",
     "activeFullnessAmount": 36.74242424242424,
-    "id": 97247021,
+    "id": 97240992,
     "damId": 80
    },
    {
@@ -194,15 +202,15 @@
     "basin": "Van Gölü",
     "dam": "SARIMEHMET",
     "activeFullnessAmount": 22.248977991823935,
-    "id": 97247012,
+    "id": 97240983,
     "damId": 83
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Van Gölü",
     "dam": "ZERNEK",
-    "activeFullnessAmount": 60.70968497482141,
-    "id": 97240888,
+    "activeFullnessAmount": 58.77737439981262,
+    "id": 97240959,
     "damId": 84
    },
    {
@@ -210,7 +218,7 @@
     "basin": "Doğu Akdeniz",
     "dam": "YALNIZARDIÇ",
     "activeFullnessAmount": 21.35892435594786,
-    "id": 97247038,
+    "id": 97241010,
     "damId": 101
    },
    {
@@ -218,7 +226,7 @@
     "basin": "Yeşilırmak",
     "dam": "ÇEKEREK",
     "activeFullnessAmount": 81.7952057213491,
-    "id": 97247049,
+    "id": 97247121,
     "damId": 301
    },
    {
@@ -226,7 +234,7 @@
     "basin": "Sakarya",
     "dam": "KARGI BARAJI VE HES",
     "activeFullnessAmount": 48.97750511247444,
-    "id": 97247043,
+    "id": 97247115,
     "damId": 401
    },
    {
@@ -234,7 +242,7 @@
     "basin": "Asi",
     "dam": "BÜYÜK KARAÇAY",
     "activeFullnessAmount": 61.05635112516273,
-    "id": 97247046,
+    "id": 97247118,
     "damId": 601
    },
    {
@@ -242,7 +250,7 @@
     "basin": "Batı Karadeniz",
     "dam": "KİRAZLIKÖPRÜ",
     "activeFullnessAmount": 4.402852049910874,
-    "id": 97247042,
+    "id": 97247114,
     "damId": 801
    },
    {
@@ -250,15 +258,15 @@
     "basin": "Antalya",
     "dam": "MANAVGAT",
     "activeFullnessAmount": 79.74496644295301,
-    "id": 97247013,
+    "id": 97240984,
     "damId": 20
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Marmara",
     "dam": "YENİCE-GÖNEN",
-    "activeFullnessAmount": 17.101571268237937,
-    "id": 97240886,
+    "activeFullnessAmount": 17.045454545454547,
+    "id": 97240957,
     "damId": 1
    },
    {
@@ -266,7 +274,7 @@
     "basin": "Susurluk",
     "dam": "ÇAYGÖREN",
     "activeFullnessAmount": 29.462545252018938,
-    "id": 97240909,
+    "id": 97240980,
     "damId": 2
    },
    {
@@ -274,7 +282,7 @@
     "basin": "Susurluk",
     "dam": "MANYAS",
     "activeFullnessAmount": 47.30470914127424,
-    "id": 97247029,
+    "id": 97241000,
     "damId": 3
    },
    {
@@ -282,15 +290,15 @@
     "basin": "Susurluk",
     "dam": "ÇINARCIK",
     "activeFullnessAmount": 29.89988757428128,
-    "id": 97240895,
+    "id": 97240966,
     "damId": 4
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Susurluk",
     "dam": "DEVECİKONAĞI",
-    "activeFullnessAmount": 46.808510638297875,
-    "id": 97247023,
+    "activeFullnessAmount": 46.276595744680854,
+    "id": 97240994,
     "damId": 5
    },
    {
@@ -298,15 +306,15 @@
     "basin": "Kuzey Ege",
     "dam": "BAYRAMİÇ",
     "activeFullnessAmount": 10.789869318838903,
-    "id": 97247032,
+    "id": 97241004,
     "damId": 6
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Gediz",
     "dam": "DEMİRKÖPRÜ",
-    "activeFullnessAmount": 43.240556660039765,
-    "id": 97240875,
+    "activeFullnessAmount": 43.1921628125981,
+    "id": 97240946,
     "damId": 7
    },
    {
@@ -314,7 +322,7 @@
     "basin": "Büyük Menderes",
     "dam": "KEMER",
     "activeFullnessAmount": 22.399609025006107,
-    "id": 97240876,
+    "id": 97240947,
     "damId": 9
    },
    {
@@ -322,15 +330,15 @@
     "basin": "Büyük Menderes",
     "dam": "ÇAPALI DİNAR KARAKUYU",
     "activeFullnessAmount": 82.5261780104712,
-    "id": 97247037,
+    "id": 97241009,
     "damId": 10
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Büyük Menderes",
     "dam": "CİNDERE",
-    "activeFullnessAmount": 19.92371265098538,
-    "id": 97240900,
+    "activeFullnessAmount": 19.885568976478066,
+    "id": 97240971,
     "damId": 11
    },
    {
@@ -338,7 +346,7 @@
     "basin": "Büyük Menderes",
     "dam": "ÇİNE ADNAN MENDERES",
     "activeFullnessAmount": 52.680511182108624,
-    "id": 97247034,
+    "id": 97241006,
     "damId": 14
    },
    {
@@ -346,7 +354,7 @@
     "basin": "Batı Akdeniz",
     "dam": "EŞEN 1",
     "activeFullnessAmount": 9.35960591133005,
-    "id": 97247015,
+    "id": 97240986,
     "damId": 17
    },
    {
@@ -354,7 +362,7 @@
     "basin": "Antalya",
     "dam": "KARACAÖREN II",
     "activeFullnessAmount": 98.41269841269842,
-    "id": 97240896,
+    "id": 97240967,
     "damId": 18
    },
    {
@@ -362,7 +370,7 @@
     "basin": "Antalya",
     "dam": "KARACAÖREN I",
     "activeFullnessAmount": 40.35894660894661,
-    "id": 97240892,
+    "id": 97240963,
     "damId": 21
    },
    {
@@ -370,7 +378,7 @@
     "basin": "Antalya",
     "dam": "SORGUN",
     "activeFullnessAmount": 78.1292059219381,
-    "id": 97247035,
+    "id": 97241007,
     "damId": 23
    },
    {
@@ -378,7 +386,7 @@
     "basin": "Sakarya",
     "dam": "YENİCE",
     "activeFullnessAmount": 0.0,
-    "id": 97240897,
+    "id": 97240968,
     "damId": 25
    },
    {
@@ -386,7 +394,7 @@
     "basin": "Sakarya",
     "dam": "SARIYAR",
     "activeFullnessAmount": 63.28781833046577,
-    "id": 97240891,
+    "id": 97240962,
     "damId": 26
    },
    {
@@ -394,7 +402,7 @@
     "basin": "Batı Karadeniz",
     "dam": "HASANLAR",
     "activeFullnessAmount": 30.110981308411215,
-    "id": 97240887,
+    "id": 97240958,
     "damId": 28
    },
    {
@@ -402,15 +410,15 @@
     "basin": "Batı Karadeniz",
     "dam": "KÖPRÜBAŞI",
     "activeFullnessAmount": 48.70095440084835,
-    "id": 97247018,
+    "id": 97240989,
     "damId": 29
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Yeşilırmak",
     "dam": "KILIÇKAYA",
-    "activeFullnessAmount": 55.39167295743569,
-    "id": 97240884,
+    "activeFullnessAmount": 55.62104407409558,
+    "id": 97240955,
     "damId": 31
    },
    {
@@ -418,7 +426,7 @@
     "basin": "Yeşilırmak",
     "dam": "H.UĞURLU",
     "activeFullnessAmount": 56.20024384996055,
-    "id": 97240879,
+    "id": 97240950,
     "damId": 32
    },
    {
@@ -426,7 +434,7 @@
     "basin": "Yeşilırmak",
     "dam": "ALMUS",
     "activeFullnessAmount": 59.93877157458297,
-    "id": 97240872,
+    "id": 97240943,
     "damId": 35
    },
    {
@@ -434,7 +442,7 @@
     "basin": "Yeşilırmak",
     "dam": "TEPEKIŞLA",
     "activeFullnessAmount": 27.237654320987655,
-    "id": 97247051,
+    "id": 97247123,
     "damId": 38
    },
    {
@@ -442,7 +450,7 @@
     "basin": "Kızılırmak",
     "dam": "ALTINKAYA",
     "activeFullnessAmount": 42.98596792146415,
-    "id": 97240874,
+    "id": 97240945,
     "damId": 41
    },
    {
@@ -450,23 +458,23 @@
     "basin": "Kızılırmak",
     "dam": "DERBENT",
     "activeFullnessAmount": 65.03733876442634,
-    "id": 97240871,
+    "id": 97240942,
     "damId": 42
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Kızılırmak",
     "dam": "KESİKKÖPRÜ",
-    "activeFullnessAmount": 94.15663701377987,
-    "id": 97240904,
+    "activeFullnessAmount": 93.33682190825049,
+    "id": 97240975,
     "damId": 44
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Kızılırmak",
     "dam": "KAPULUKAYA",
-    "activeFullnessAmount": 94.21275843788655,
-    "id": 97240883,
+    "activeFullnessAmount": 92.19826824527301,
+    "id": 97240954,
     "damId": 45
    },
    {
@@ -474,7 +482,7 @@
     "basin": "Kızılırmak",
     "dam": "OBRUK",
     "activeFullnessAmount": 53.252472187886276,
-    "id": 97247041,
+    "id": 97247113,
     "damId": 47
    },
    {
@@ -482,7 +490,7 @@
     "basin": "Kızılırmak",
     "dam": "BAYRAMHACILI HES",
     "activeFullnessAmount": 54.303030303030305,
-    "id": 97240906,
+    "id": 97240977,
     "damId": 48
    },
    {
@@ -490,15 +498,15 @@
     "basin": "Kızılırmak",
     "dam": "ÇERMİKLER",
     "activeFullnessAmount": 54.492753623188406,
-    "id": 97247031,
+    "id": 97241003,
     "damId": 50
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Doğu Akdeniz",
     "dam": "BERDAN",
-    "activeFullnessAmount": 28.038115128573292,
-    "id": 97240870,
+    "activeFullnessAmount": 27.881477613888528,
+    "id": 97240941,
     "damId": 53
    },
    {
@@ -506,7 +514,7 @@
     "basin": "Doğu Akdeniz",
     "dam": "GÖKÇELER",
     "activeFullnessAmount": 22.14893247700052,
-    "id": 97247048,
+    "id": 97247120,
     "damId": 1001
    },
    {
@@ -514,7 +522,7 @@
     "basin": "Seyhan",
     "dam": "KARAKUZ",
     "activeFullnessAmount": 82.99120234604105,
-    "id": 97247047,
+    "id": 97247119,
     "damId": 1002
    },
    {
@@ -522,7 +530,7 @@
     "basin": "Doğu Akdeniz",
     "dam": "PAMUKLUK",
     "activeFullnessAmount": 63.829787234042556,
-    "id": 97247050,
+    "id": 97247122,
     "damId": 1101
    },
    {
@@ -530,7 +538,7 @@
     "basin": "Van Gölü",
     "dam": "MORGEDİK",
     "activeFullnessAmount": 76.08826479438315,
-    "id": 97247052,
+    "id": 97247124,
     "damId": 1201
    },
    {
@@ -538,7 +546,7 @@
     "basin": "Sakarya",
     "dam": "GÜRSÖĞÜT-2",
     "activeFullnessAmount": 27.793696275071632,
-    "id": 97247044,
+    "id": 97247116,
     "damId": 1701
    },
    {
@@ -546,7 +554,7 @@
     "basin": "Antalya",
     "dam": "OYMAPINAR",
     "activeFullnessAmount": 63.641819709518664,
-    "id": 97240898,
+    "id": 97240969,
     "damId": 19
    },
    {
@@ -554,15 +562,15 @@
     "basin": "Sakarya",
     "dam": "GÖKÇEKAYA",
     "activeFullnessAmount": 54.022313564298294,
-    "id": 97240877,
+    "id": 97240948,
     "damId": 24
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Sakarya",
     "dam": "BOĞAZKÖY",
-    "activeFullnessAmount": 68.36304700162074,
-    "id": 97247030,
+    "activeFullnessAmount": 67.42301458670988,
+    "id": 97241001,
     "damId": 27
    },
    {
@@ -570,15 +578,15 @@
     "basin": "Yeşilırmak",
     "dam": "ATAKÖY",
     "activeFullnessAmount": 87.38738738738739,
-    "id": 97240907,
+    "id": 97240978,
     "damId": 30
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Yeşilırmak",
     "dam": "ÇAMLIGÖZE",
-    "activeFullnessAmount": 100.0,
-    "id": 97240881,
+    "activeFullnessAmount": 98.8956377691883,
+    "id": 97240952,
     "damId": 33
    },
    {
@@ -586,7 +594,7 @@
     "basin": "Yeşilırmak",
     "dam": "GÖLOVA",
     "activeFullnessAmount": 44.76953907815631,
-    "id": 97247020,
+    "id": 97240991,
     "damId": 36
    },
    {
@@ -594,7 +602,7 @@
     "basin": "Kızılırmak",
     "dam": "HİRFANLI",
     "activeFullnessAmount": 56.0987250635945,
-    "id": 97240878,
+    "id": 97240949,
     "damId": 43
    },
    {
@@ -602,7 +610,7 @@
     "basin": "Kızılırmak",
     "dam": "YAMULA",
     "activeFullnessAmount": 63.940836450187014,
-    "id": 97240910,
+    "id": 97240981,
     "damId": 46
    },
    {
@@ -610,15 +618,15 @@
     "basin": "Kızılırmak",
     "dam": "BOYABAT",
     "activeFullnessAmount": 58.352353780313834,
-    "id": 97247016,
+    "id": 97240987,
     "damId": 49
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Kızılırmak",
     "dam": "GÜLDÜRCEK",
-    "activeFullnessAmount": 36.918958384035044,
-    "id": 97240901,
+    "activeFullnessAmount": 36.943295205646145,
+    "id": 97240972,
     "damId": 51
    },
    {
@@ -626,7 +634,7 @@
     "basin": "Ceyhan",
     "dam": "ADATEPE",
     "activeFullnessAmount": 54.267857142857146,
-    "id": 97247039,
+    "id": 97247111,
     "damId": 201
    },
    {
@@ -634,7 +642,7 @@
     "basin": "Doğu Karadeniz",
     "dam": "YAŞMAKLI",
     "activeFullnessAmount": 44.935064935064936,
-    "id": 97247022,
+    "id": 97240993,
     "damId": 703
    },
    {
@@ -642,7 +650,7 @@
     "basin": "Kızılırmak",
     "dam": "KARGI KIZILIRMAK",
     "activeFullnessAmount": 12.640163098878695,
-    "id": 97247054,
+    "id": 97247126,
     "damId": 2101
    },
    {
@@ -650,7 +658,7 @@
     "basin": "Batı Akdeniz",
     "dam": "ALAKIR",
     "activeFullnessAmount": 40.77275703994761,
-    "id": 97240893,
+    "id": 97240964,
     "damId": 15
    },
    {
@@ -658,15 +666,15 @@
     "basin": "Yeşilırmak",
     "dam": "S.UĞURLU",
     "activeFullnessAmount": 72.3780253553592,
-    "id": 97240889,
+    "id": 97240960,
     "damId": 34
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Doğu Akdeniz",
     "dam": "GEZENDE",
-    "activeFullnessAmount": 59.99694516572476,
-    "id": 97240880,
+    "activeFullnessAmount": 58.438979685352066,
+    "id": 97240951,
     "damId": 52
    },
    {
@@ -674,15 +682,15 @@
     "basin": "Batı Karadeniz",
     "dam": "ARAÇ BARAJI",
     "activeFullnessAmount": 16.58247309466286,
-    "id": 97247053,
+    "id": 97247125,
     "damId": 2301
    },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basin": "Sakarya",
     "dam": "GÜRSÖĞÜT-1",
-    "activeFullnessAmount": 46.004243281471005,
-    "id": 97247045,
+    "activeFullnessAmount": 46.71145685997171,
+    "id": 97247117,
     "damId": 2401
    }
   ],
@@ -692,7 +700,7 @@
     "basinName": "Doğu Akdeniz",
     "damName": "ERMENEK",
     "activeVolume": 1166.76,
-    "id": 97247099,
+    "id": 97240985,
     "damId": 54
    },
    {
@@ -700,7 +708,7 @@
     "basinName": "Doğu Akdeniz",
     "damName": "BALKUSAN",
     "activeVolume": 0.63,
-    "id": 97240916,
+    "id": 97241002,
     "damId": 55
    },
    {
@@ -708,7 +716,7 @@
     "basinName": "Doğu Akdeniz",
     "damName": "ALAKÖPRÜ",
     "activeVolume": 30.91,
-    "id": 97240922,
+    "id": 97241008,
     "damId": 56
    },
    {
@@ -716,7 +724,7 @@
     "basinName": "Seyhan",
     "damName": "ÇATALAN",
     "activeVolume": 118.65,
-    "id": 97247067,
+    "id": 97240953,
     "damId": 57
    },
    {
@@ -724,7 +732,7 @@
     "basinName": "Seyhan",
     "damName": "BAHÇELİK",
     "activeVolume": 86.51,
-    "id": 97247088,
+    "id": 97240974,
     "damId": 59
    },
    {
@@ -732,7 +740,7 @@
     "basinName": "Seyhan",
     "damName": "YEDİGÖZE",
     "activeVolume": 245.65,
-    "id": 97247096,
+    "id": 97240982,
     "damId": 60
    },
    {
@@ -740,7 +748,7 @@
     "basinName": "Seyhan",
     "damName": "FEKE-2",
     "activeVolume": 14.06,
-    "id": 97247093,
+    "id": 97240979,
     "damId": 61
    },
    {
@@ -748,7 +756,7 @@
     "basinName": "Seyhan",
     "damName": "MENGE HES",
     "activeVolume": 9.83,
-    "id": 97247090,
+    "id": 97240976,
     "damId": 62
    },
    {
@@ -756,7 +764,7 @@
     "basinName": "Seyhan",
     "damName": "KÖPRÜ",
     "activeVolume": 27.59,
-    "id": 97247104,
+    "id": 97240990,
     "damId": 63
    },
    {
@@ -764,7 +772,7 @@
     "basinName": "Seyhan",
     "damName": "KAVŞAKBENDİ HES",
     "activeVolume": 6.32,
-    "id": 97240911,
+    "id": 97240997,
     "damId": 64
    },
    {
@@ -772,7 +780,7 @@
     "basinName": "Seyhan",
     "damName": "GÜMÜŞÖREN",
     "activeVolume": 93.66,
-    "id": 97240926,
+    "id": 97247112,
     "damId": 65
    },
    {
@@ -780,7 +788,7 @@
     "basinName": "Seyhan",
     "damName": "GÖKTAŞ-1",
     "activeVolume": 9.49,
-    "id": 97240919,
+    "id": 97241005,
     "damId": 66
    },
    {
@@ -788,7 +796,7 @@
     "basinName": "Ceyhan",
     "damName": "ASLANTAŞ",
     "activeVolume": 529.63,
-    "id": 97247058,
+    "id": 97240944,
     "damId": 67
    },
    {
@@ -796,7 +804,7 @@
     "basinName": "Ceyhan",
     "damName": "MENZELET",
     "activeVolume": 1015.9,
-    "id": 97247075,
+    "id": 97240961,
     "damId": 68
    },
    {
@@ -804,7 +812,7 @@
     "basinName": "Ceyhan",
     "damName": "SIR",
     "activeVolume": 490.29,
-    "id": 97247084,
+    "id": 97240970,
     "damId": 69
    },
    {
@@ -812,7 +820,7 @@
     "basinName": "Ceyhan",
     "damName": "KOZAN",
     "activeVolume": 86.5,
-    "id": 97247079,
+    "id": 97240965,
     "damId": 70
    },
    {
@@ -820,7 +828,7 @@
     "basinName": "Ceyhan",
     "damName": "KARTALKAYA",
     "activeVolume": 79.54,
-    "id": 97240912,
+    "id": 97240998,
     "damId": 72
    },
    {
@@ -828,7 +836,7 @@
     "basinName": "Ceyhan",
     "damName": "BERKE ",
     "activeVolume": 271.67,
-    "id": 97247110,
+    "id": 97240996,
     "damId": 73
    },
    {
@@ -836,7 +844,7 @@
     "basinName": "Ceyhan",
     "damName": "KILAVUZLU",
     "activeVolume": 5.02,
-    "id": 97247102,
+    "id": 97240988,
     "damId": 74
    },
    {
@@ -844,7 +852,7 @@
     "basinName": "Ceyhan",
     "damName": "KANDİL HES",
     "activeVolume": 169.33,
-    "id": 97240913,
+    "id": 97240999,
     "damId": 75
    },
    {
@@ -852,7 +860,7 @@
     "basinName": "Ceyhan",
     "damName": "SARIGÜZEL HES",
     "activeVolume": 24.18,
-    "id": 97247109,
+    "id": 97240995,
     "damId": 76
    },
    {
@@ -860,7 +868,7 @@
     "basinName": "Doğu Karadeniz",
     "damName": "KÜRTÜN",
     "activeVolume": 22.22,
-    "id": 97247070,
+    "id": 97240956,
     "damId": 77
    },
    {
@@ -868,7 +876,7 @@
     "basinName": "Doğu Karadeniz",
     "damName": "TORUL",
     "activeVolume": 6.39,
-    "id": 97247087,
+    "id": 97240973,
     "damId": 78
    },
    {
@@ -876,7 +884,7 @@
     "basinName": "Doğu Karadeniz",
     "damName": "TOPÇAM-ORDU",
     "activeVolume": 40.74,
-    "id": 97247106,
+    "id": 97240992,
     "damId": 80
    },
    {
@@ -884,7 +892,7 @@
     "basinName": "Van Gölü",
     "damName": "SARIMEHMET",
     "activeVolume": 39.73,
-    "id": 97247097,
+    "id": 97240983,
     "damId": 83
    },
    {
@@ -892,7 +900,7 @@
     "basinName": "Van Gölü",
     "damName": "ZERNEK",
     "activeVolume": 50.19,
-    "id": 97247073,
+    "id": 97240959,
     "damId": 84
    },
    {
@@ -900,7 +908,7 @@
     "basinName": "Doğu Akdeniz",
     "damName": "YALNIZARDIÇ",
     "activeVolume": 20.81,
-    "id": 97240924,
+    "id": 97241010,
     "damId": 101
    },
    {
@@ -908,7 +916,7 @@
     "basinName": "Yeşilırmak",
     "damName": "ÇEKEREK",
     "activeVolume": 741.13,
-    "id": 97240935,
+    "id": 97247121,
     "damId": 301
    },
    {
@@ -916,7 +924,7 @@
     "basinName": "Sakarya",
     "damName": "KARGI BARAJI VE HES",
     "activeVolume": 4.79,
-    "id": 97240929,
+    "id": 97247115,
     "damId": 401
    },
    {
@@ -924,7 +932,7 @@
     "basinName": "Asi",
     "damName": "BÜYÜK KARAÇAY",
     "activeVolume": 32.83,
-    "id": 97240932,
+    "id": 97247118,
     "damId": 601
    },
    {
@@ -932,7 +940,7 @@
     "basinName": "Batı Karadeniz",
     "damName": "KİRAZLIKÖPRÜ",
     "activeVolume": 2.47,
-    "id": 97240928,
+    "id": 97247114,
     "damId": 801
    },
    {
@@ -940,7 +948,7 @@
     "basinName": "Antalya",
     "damName": "MANAVGAT",
     "activeVolume": 59.41,
-    "id": 97247098,
+    "id": 97240984,
     "damId": 20
    },
    {
@@ -948,7 +956,7 @@
     "basinName": "Marmara",
     "damName": "YENİCE-GÖNEN",
     "activeVolume": 24.3,
-    "id": 97247071,
+    "id": 97240957,
     "damId": 1
    },
    {
@@ -956,7 +964,7 @@
     "basinName": "Susurluk",
     "damName": "ÇAYGÖREN",
     "activeVolume": 42.32,
-    "id": 97247094,
+    "id": 97240980,
     "damId": 2
    },
    {
@@ -964,7 +972,7 @@
     "basinName": "Susurluk",
     "damName": "MANYAS",
     "activeVolume": 170.77,
-    "id": 97240914,
+    "id": 97241000,
     "damId": 3
    },
    {
@@ -972,7 +980,7 @@
     "basinName": "Susurluk",
     "damName": "ÇINARCIK",
     "activeVolume": 55.85,
-    "id": 97247080,
+    "id": 97240966,
     "damId": 4
    },
    {
@@ -980,7 +988,7 @@
     "basinName": "Susurluk",
     "damName": "DEVECİKONAĞI",
     "activeVolume": 0.87,
-    "id": 97247108,
+    "id": 97240994,
     "damId": 5
    },
    {
@@ -988,7 +996,7 @@
     "basinName": "Kuzey Ege",
     "damName": "BAYRAMİÇ",
     "activeVolume": 9.33,
-    "id": 97240918,
+    "id": 97241004,
     "damId": 6
    },
    {
@@ -996,7 +1004,7 @@
     "basinName": "Gediz",
     "damName": "DEMİRKÖPRÜ",
     "activeVolume": 330.23,
-    "id": 97247060,
+    "id": 97240946,
     "damId": 7
    },
    {
@@ -1004,7 +1012,7 @@
     "basinName": "Büyük Menderes",
     "damName": "KEMER",
     "activeVolume": 82.5,
-    "id": 97247061,
+    "id": 97240947,
     "damId": 9
    },
    {
@@ -1012,7 +1020,7 @@
     "basinName": "Büyük Menderes",
     "damName": "ÇAPALI DİNAR KARAKUYU",
     "activeVolume": 12.61,
-    "id": 97240923,
+    "id": 97241009,
     "damId": 10
    },
    {
@@ -1020,7 +1028,7 @@
     "basinName": "Büyük Menderes",
     "damName": "CİNDERE",
     "activeVolume": 15.64,
-    "id": 97247085,
+    "id": 97240971,
     "damId": 11
    },
    {
@@ -1028,7 +1036,7 @@
     "basinName": "Büyük Menderes",
     "damName": "ÇİNE ADNAN MENDERES",
     "activeVolume": 164.89,
-    "id": 97240920,
+    "id": 97241006,
     "damId": 14
    },
    {
@@ -1036,7 +1044,7 @@
     "basinName": "Batı Akdeniz",
     "damName": "EŞEN 1",
     "activeVolume": 1.9,
-    "id": 97247100,
+    "id": 97240986,
     "damId": 17
    },
    {
@@ -1044,7 +1052,7 @@
     "basinName": "Antalya",
     "damName": "KARACAÖREN II",
     "activeVolume": 4.96,
-    "id": 97247081,
+    "id": 97240967,
     "damId": 18
    },
    {
@@ -1052,7 +1060,7 @@
     "basinName": "Antalya",
     "damName": "KARACAÖREN I",
     "activeVolume": 358.0,
-    "id": 97247077,
+    "id": 97240963,
     "damId": 21
    },
    {
@@ -1060,7 +1068,7 @@
     "basinName": "Antalya",
     "damName": "SORGUN",
     "activeVolume": 11.61,
-    "id": 97240921,
+    "id": 97241007,
     "damId": 23
    },
    {
@@ -1068,7 +1076,7 @@
     "basinName": "Sakarya",
     "damName": "YENİCE",
     "activeVolume": 0.0,
-    "id": 97247082,
+    "id": 97240968,
     "damId": 25
    },
    {
@@ -1076,7 +1084,7 @@
     "basinName": "Sakarya",
     "damName": "SARIYAR",
     "activeVolume": 518.65,
-    "id": 97247076,
+    "id": 97240962,
     "damId": 26
    },
    {
@@ -1084,7 +1092,7 @@
     "basinName": "Batı Karadeniz",
     "damName": "HASANLAR",
     "activeVolume": 10.31,
-    "id": 97247072,
+    "id": 97240958,
     "damId": 28
    },
    {
@@ -1092,7 +1100,7 @@
     "basinName": "Batı Karadeniz",
     "damName": "KÖPRÜBAŞI",
     "activeVolume": 91.85,
-    "id": 97247103,
+    "id": 97240989,
     "damId": 29
    },
    {
@@ -1100,7 +1108,7 @@
     "basinName": "Yeşilırmak",
     "damName": "KILIÇKAYA",
     "activeVolume": 574.71,
-    "id": 97247069,
+    "id": 97240955,
     "damId": 31
    },
    {
@@ -1108,7 +1116,7 @@
     "basinName": "Yeşilırmak",
     "damName": "H.UĞURLU",
     "activeVolume": 313.44,
-    "id": 97247064,
+    "id": 97240950,
     "damId": 32
    },
    {
@@ -1116,7 +1124,7 @@
     "basinName": "Yeşilırmak",
     "damName": "ALMUS",
     "activeVolume": 497.3,
-    "id": 97247057,
+    "id": 97240943,
     "damId": 35
    },
    {
@@ -1124,7 +1132,7 @@
     "basinName": "Yeşilırmak",
     "damName": "TEPEKIŞLA",
     "activeVolume": 3.53,
-    "id": 97240937,
+    "id": 97247123,
     "damId": 38
    },
    {
@@ -1132,7 +1140,7 @@
     "basinName": "Kızılırmak",
     "damName": "ALTINKAYA",
     "activeVolume": 1177.88,
-    "id": 97247059,
+    "id": 97240945,
     "damId": 41
    },
    {
@@ -1140,7 +1148,7 @@
     "basinName": "Kızılırmak",
     "damName": "DERBENT",
     "activeVolume": 28.74,
-    "id": 97247056,
+    "id": 97240942,
     "damId": 42
    },
    {
@@ -1148,7 +1156,7 @@
     "basinName": "Kızılırmak",
     "damName": "KESİKKÖPRÜ",
     "activeVolume": 53.51,
-    "id": 97247089,
+    "id": 97240975,
     "damId": 44
    },
    {
@@ -1156,7 +1164,7 @@
     "basinName": "Kızılırmak",
     "damName": "KAPULUKAYA",
     "activeVolume": 104.35,
-    "id": 97247068,
+    "id": 97240954,
     "damId": 45
    },
    {
@@ -1164,7 +1172,7 @@
     "basinName": "Kızılırmak",
     "damName": "OBRUK",
     "activeVolume": 68.93,
-    "id": 97240927,
+    "id": 97247113,
     "damId": 47
    },
    {
@@ -1172,7 +1180,7 @@
     "basinName": "Kızılırmak",
     "damName": "BAYRAMHACILI HES",
     "activeVolume": 35.84,
-    "id": 97247091,
+    "id": 97240977,
     "damId": 48
    },
    {
@@ -1180,7 +1188,7 @@
     "basinName": "Kızılırmak",
     "damName": "ÇERMİKLER",
     "activeVolume": 3.76,
-    "id": 97240917,
+    "id": 97241003,
     "damId": 50
    },
    {
@@ -1188,7 +1196,7 @@
     "basinName": "Doğu Akdeniz",
     "damName": "BERDAN",
     "activeVolume": 42.72,
-    "id": 97247055,
+    "id": 97240941,
     "damId": 53
    },
    {
@@ -1196,7 +1204,7 @@
     "basinName": "Doğu Akdeniz",
     "damName": "GÖKÇELER",
     "activeVolume": 12.76,
-    "id": 97240934,
+    "id": 97247120,
     "damId": 1001
    },
    {
@@ -1204,7 +1212,7 @@
     "basinName": "Seyhan",
     "damName": "KARAKUZ",
     "activeVolume": 2.83,
-    "id": 97240933,
+    "id": 97247119,
     "damId": 1002
    },
    {
@@ -1212,7 +1220,7 @@
     "basinName": "Doğu Akdeniz",
     "damName": "PAMUKLUK",
     "activeVolume": 167.7,
-    "id": 97240936,
+    "id": 97247122,
     "damId": 1101
    },
    {
@@ -1220,7 +1228,7 @@
     "basinName": "Van Gölü",
     "damName": "MORGEDİK",
     "activeVolume": 75.86,
-    "id": 97240938,
+    "id": 97247124,
     "damId": 1201
    },
    {
@@ -1228,7 +1236,7 @@
     "basinName": "Sakarya",
     "damName": "GÜRSÖĞÜT-2",
     "activeVolume": 0.97,
-    "id": 97240930,
+    "id": 97247116,
     "damId": 1701
    },
    {
@@ -1236,7 +1244,7 @@
     "basinName": "Antalya",
     "damName": "OYMAPINAR",
     "activeVolume": 53.02,
-    "id": 97247083,
+    "id": 97240969,
     "damId": 19
    },
    {
@@ -1244,7 +1252,7 @@
     "basinName": "Sakarya",
     "damName": "GÖKÇEKAYA",
     "activeVolume": 119.6,
-    "id": 97247062,
+    "id": 97240948,
     "damId": 24
    },
    {
@@ -1252,7 +1260,7 @@
     "basinName": "Sakarya",
     "damName": "BOĞAZKÖY",
     "activeVolume": 20.8,
-    "id": 97240915,
+    "id": 97241001,
     "damId": 27
    },
    {
@@ -1260,7 +1268,7 @@
     "basinName": "Yeşilırmak",
     "damName": "ATAKÖY",
     "activeVolume": 0.97,
-    "id": 97247092,
+    "id": 97240978,
     "damId": 30
    },
    {
@@ -1268,7 +1276,7 @@
     "basinName": "Yeşilırmak",
     "damName": "ÇAMLIGÖZE",
     "activeVolume": 17.91,
-    "id": 97247066,
+    "id": 97240952,
     "damId": 33
    },
    {
@@ -1276,7 +1284,7 @@
     "basinName": "Yeşilırmak",
     "damName": "GÖLOVA",
     "activeVolume": 22.34,
-    "id": 97247105,
+    "id": 97240991,
     "damId": 36
    },
    {
@@ -1284,7 +1292,7 @@
     "basinName": "Kızılırmak",
     "damName": "HİRFANLI",
     "activeVolume": 1104.87,
-    "id": 97247063,
+    "id": 97240949,
     "damId": 43
    },
    {
@@ -1292,7 +1300,7 @@
     "basinName": "Kızılırmak",
     "damName": "YAMULA",
     "activeVolume": 1316.35,
-    "id": 97247095,
+    "id": 97240981,
     "damId": 46
    },
    {
@@ -1300,7 +1308,7 @@
     "basinName": "Kızılırmak",
     "damName": "BOYABAT",
     "activeVolume": 818.1,
-    "id": 97247101,
+    "id": 97240987,
     "damId": 49
    },
    {
@@ -1308,7 +1316,7 @@
     "basinName": "Kızılırmak",
     "damName": "GÜLDÜRCEK",
     "activeVolume": 15.18,
-    "id": 97247086,
+    "id": 97240972,
     "damId": 51
    },
    {
@@ -1316,7 +1324,7 @@
     "basinName": "Ceyhan",
     "damName": "ADATEPE",
     "activeVolume": 243.12,
-    "id": 97240925,
+    "id": 97247111,
     "damId": 201
    },
    {
@@ -1324,7 +1332,7 @@
     "basinName": "Doğu Karadeniz",
     "damName": "YAŞMAKLI",
     "activeVolume": 6.92,
-    "id": 97247107,
+    "id": 97240993,
     "damId": 703
    },
    {
@@ -1332,7 +1340,7 @@
     "basinName": "Kızılırmak",
     "damName": "KARGI KIZILIRMAK",
     "activeVolume": 1.24,
-    "id": 97240940,
+    "id": 97247126,
     "damId": 2101
    },
    {
@@ -1340,7 +1348,7 @@
     "basinName": "Batı Akdeniz",
     "damName": "ALAKIR",
     "activeVolume": 31.13,
-    "id": 97247078,
+    "id": 97240964,
     "damId": 15
    },
    {
@@ -1348,7 +1356,7 @@
     "basinName": "Yeşilırmak",
     "damName": "S.UĞURLU",
     "activeVolume": 18.84,
-    "id": 97247074,
+    "id": 97240960,
     "damId": 34
    },
    {
@@ -1356,7 +1364,7 @@
     "basinName": "Doğu Akdeniz",
     "damName": "GEZENDE",
     "activeVolume": 38.26,
-    "id": 97247065,
+    "id": 97240951,
     "damId": 52
    },
    {
@@ -1364,7 +1372,7 @@
     "basinName": "Batı Karadeniz",
     "damName": "ARAÇ BARAJI",
     "activeVolume": 7.55,
-    "id": 97240939,
+    "id": 97247125,
     "damId": 2301
    },
    {
@@ -1372,18 +1380,11 @@
     "basinName": "Sakarya",
     "damName": "GÜRSÖĞÜT-1",
     "activeVolume": 13.21,
-    "id": 97240931,
+    "id": 97247117,
     "damId": 2401
    }
   ],
   "dams-water-energy-provision": [
-   {
-    "date": "2026-10-14T00:00:00+03:00",
-    "basinName": "Kızılırmak",
-    "damName": "KARGI KIZILIRMAK",
-    "energyGeneration": 0.23,
-    "damId": 2101
-   },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basinName": "Doğu Akdeniz",
@@ -1978,16 +1979,16 @@
     "damName": "ARAÇ BARAJI",
     "energyGeneration": 0.79,
     "damId": 2301
-   }
-  ],
-  "dams-daily-volume": [
+   },
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basinName": "Kızılırmak",
     "damName": "KARGI KIZILIRMAK",
-    "volume": 6.85,
+    "energyGeneration": 0.23,
     "damId": 2101
-   },
+   }
+  ],
+  "dams-daily-volume": [
    {
     "date": "2026-10-14T00:00:00+03:00",
     "basinName": "Doğu Akdeniz",
@@ -2582,10 +2583,618 @@
     "damName": "ARAÇ BARAJI",
     "volume": 15.45,
     "damId": 2301
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basinName": "Kızılırmak",
+    "damName": "KARGI KIZILIRMAK",
+    "volume": 6.85,
+    "damId": 2101
    }
   ],
-  "dams-daily-level": {
-   "error": "HTTPSConnectionPool(host='seffaflik.epias.com.tr', port=443): Read timed out. (read timeout=10.0)"
-  }
+  "dams-daily-level": [
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Doğu Akdeniz",
+    "dam": "BERDAN",
+    "dailyKot": 53.85,
+    "damId": 53
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Kızılırmak",
+    "dam": "DERBENT",
+    "dailyKot": 56.5,
+    "damId": 42
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Yeşilırmak",
+    "dam": "ALMUS",
+    "dailyKot": 793.96,
+    "damId": 35
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Ceyhan",
+    "dam": "ASLANTAŞ",
+    "dailyKot": 144.26,
+    "damId": 67
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Kızılırmak",
+    "dam": "ALTINKAYA",
+    "dailyKot": 175.04,
+    "damId": 41
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Gediz",
+    "dam": "DEMİRKÖPRÜ",
+    "dailyKot": 233.94,
+    "damId": 7
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Büyük Menderes",
+    "dam": "KEMER",
+    "dailyKot": 264.9,
+    "damId": 9
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Sakarya",
+    "dam": "GÖKÇEKAYA",
+    "dailyKot": 384.02,
+    "damId": 24
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Kızılırmak",
+    "dam": "HİRFANLI",
+    "dailyKot": 847.47,
+    "damId": 43
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Yeşilırmak",
+    "dam": "H.UĞURLU",
+    "dailyKot": 177.92,
+    "damId": 32
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Doğu Akdeniz",
+    "dam": "GEZENDE",
+    "dailyKot": 325.41,
+    "damId": 52
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Yeşilırmak",
+    "dam": "ÇAMLIGÖZE",
+    "dailyKot": 749.95,
+    "damId": 33
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Seyhan",
+    "dam": "ÇATALAN",
+    "dailyKot": 116.88,
+    "damId": 57
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Kızılırmak",
+    "dam": "KAPULUKAYA",
+    "dailyKot": 723.5,
+    "damId": 45
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Yeşilırmak",
+    "dam": "KILIÇKAYA",
+    "dailyKot": 841.35,
+    "damId": 31
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Doğu Karadeniz",
+    "dam": "KÜRTÜN",
+    "dailyKot": 625.14,
+    "damId": 77
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Marmara",
+    "dam": "YENİCE-GÖNEN",
+    "dailyKot": 136.07,
+    "damId": 1
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Batı Karadeniz",
+    "dam": "HASANLAR",
+    "dailyKot": 243.52,
+    "damId": 28
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Van Gölü",
+    "dam": "ZERNEK",
+    "dailyKot": 1927.29,
+    "damId": 84
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Yeşilırmak",
+    "dam": "S.UĞURLU",
+    "dailyKot": 60.7,
+    "damId": 34
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Ceyhan",
+    "dam": "MENZELET",
+    "dailyKot": 599.2,
+    "damId": 68
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Sakarya",
+    "dam": "SARIYAR",
+    "dailyKot": 468.56,
+    "damId": 26
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Antalya",
+    "dam": "KARACAÖREN I",
+    "dailyKot": 257.11,
+    "damId": 21
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Batı Akdeniz",
+    "dam": "ALAKIR",
+    "dailyKot": 127.39,
+    "damId": 15
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Ceyhan",
+    "dam": "KOZAN",
+    "dailyKot": 261.95,
+    "damId": 70
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Susurluk",
+    "dam": "ÇINARCIK",
+    "dailyKot": 313.89,
+    "damId": 4
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Antalya",
+    "dam": "KARACAÖREN II",
+    "dailyKot": 187.46,
+    "damId": 18
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Sakarya",
+    "dam": "YENİCE",
+    "dailyKot": 272.0,
+    "damId": 25
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Antalya",
+    "dam": "OYMAPINAR",
+    "dailyKot": 177.87,
+    "damId": 19
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Ceyhan",
+    "dam": "SIR",
+    "dailyKot": 435.19,
+    "damId": 69
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Büyük Menderes",
+    "dam": "CİNDERE",
+    "dailyKot": 236.7,
+    "damId": 11
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Kızılırmak",
+    "dam": "GÜLDÜRCEK",
+    "dailyKot": 1497.82,
+    "damId": 51
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Doğu Karadeniz",
+    "dam": "TORUL",
+    "dailyKot": 893.25,
+    "damId": 78
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Seyhan",
+    "dam": "BAHÇELİK",
+    "dailyKot": 1489.55,
+    "damId": 59
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Kızılırmak",
+    "dam": "KESİKKÖPRÜ",
+    "dailyKot": 784.95,
+    "damId": 44
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Seyhan",
+    "dam": "MENGE HES",
+    "dailyKot": 474.91,
+    "damId": 62
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Kızılırmak",
+    "dam": "BAYRAMHACILI HES",
+    "dailyKot": 977.72,
+    "damId": 48
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Yeşilırmak",
+    "dam": "ATAKÖY",
+    "dailyKot": 733.11,
+    "damId": 30
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Seyhan",
+    "dam": "FEKE-2",
+    "dailyKot": 536.78,
+    "damId": 61
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Susurluk",
+    "dam": "ÇAYGÖREN",
+    "dailyKot": 255.55,
+    "damId": 2
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Kızılırmak",
+    "dam": "YAMULA",
+    "dailyKot": 1090.89,
+    "damId": 46
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Seyhan",
+    "dam": "YEDİGÖZE",
+    "dailyKot": 231.17,
+    "damId": 60
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Van Gölü",
+    "dam": "SARIMEHMET",
+    "dailyKot": 1997.79,
+    "damId": 83
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Antalya",
+    "dam": "MANAVGAT",
+    "dailyKot": 30.52,
+    "damId": 20
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Doğu Akdeniz",
+    "dam": "ERMENEK",
+    "dailyKot": 683.71,
+    "damId": 54
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Batı Akdeniz",
+    "dam": "EŞEN 1",
+    "dailyKot": 1108.8,
+    "damId": 17
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Kızılırmak",
+    "dam": "BOYABAT",
+    "dailyKot": 320.54,
+    "damId": 49
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Ceyhan",
+    "dam": "KILAVUZLU",
+    "dailyKot": 484.9,
+    "damId": 74
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Batı Karadeniz",
+    "dam": "KÖPRÜBAŞI",
+    "dailyKot": 426.26,
+    "damId": 29
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Seyhan",
+    "dam": "KÖPRÜ",
+    "dailyKot": 402.57,
+    "damId": 63
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Yeşilırmak",
+    "dam": "GÖLOVA",
+    "dailyKot": 1286.54,
+    "damId": 36
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Doğu Karadeniz",
+    "dam": "TOPÇAM-ORDU",
+    "dailyKot": 881.59,
+    "damId": 80
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Doğu Karadeniz",
+    "dam": "YAŞMAKLI",
+    "dailyKot": 1612.01,
+    "damId": 703
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Susurluk",
+    "dam": "DEVECİKONAĞI",
+    "dailyKot": 93.36,
+    "damId": 5
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Ceyhan",
+    "dam": "SARIGÜZEL HES",
+    "dailyKot": 859.16,
+    "damId": 76
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Ceyhan",
+    "dam": "BERKE ",
+    "dailyKot": 339.88,
+    "damId": 73
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Seyhan",
+    "dam": "KAVŞAKBENDİ HES",
+    "dailyKot": 317.02,
+    "damId": 64
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Ceyhan",
+    "dam": "KARTALKAYA",
+    "dailyKot": 708.5,
+    "damId": 72
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Ceyhan",
+    "dam": "KANDİL HES",
+    "dailyKot": 1084.46,
+    "damId": 75
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Susurluk",
+    "dam": "MANYAS",
+    "dailyKot": 108.04,
+    "damId": 3
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Sakarya",
+    "dam": "BOĞAZKÖY",
+    "dailyKot": 264.09,
+    "damId": 27
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Doğu Akdeniz",
+    "dam": "BALKUSAN",
+    "dailyKot": 1467.12,
+    "damId": 55
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Kızılırmak",
+    "dam": "ÇERMİKLER",
+    "dailyKot": 1190.17,
+    "damId": 50
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Kuzey Ege",
+    "dam": "BAYRAMİÇ",
+    "dailyKot": 126.51,
+    "damId": 6
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Seyhan",
+    "dam": "GÖKTAŞ-1",
+    "dailyKot": 623.84,
+    "damId": 66
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Büyük Menderes",
+    "dam": "ÇİNE ADNAN MENDERES",
+    "dailyKot": 241.29,
+    "damId": 14
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Antalya",
+    "dam": "SORGUN",
+    "dailyKot": 1395.02,
+    "damId": 23
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Doğu Akdeniz",
+    "dam": "ALAKÖPRÜ",
+    "dailyKot": 121.4,
+    "damId": 56
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Büyük Menderes",
+    "dam": "ÇAPALI DİNAR KARAKUYU",
+    "dailyKot": 1006.88,
+    "damId": 10
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Doğu Akdeniz",
+    "dam": "YALNIZARDIÇ",
+    "dailyKot": 1327.53,
+    "damId": 101
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Ceyhan",
+    "dam": "ADATEPE",
+    "dailyKot": 1299.01,
+    "damId": 201
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Seyhan",
+    "dam": "GÜMÜŞÖREN",
+    "dailyKot": 1293.26,
+    "damId": 65
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Kızılırmak",
+    "dam": "OBRUK",
+    "dailyKot": 508.51,
+    "damId": 47
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Batı Karadeniz",
+    "dam": "KİRAZLIKÖPRÜ",
+    "dailyKot": 78.27,
+    "damId": 801
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Sakarya",
+    "dam": "KARGI BARAJI VE HES",
+    "dailyKot": 555.0,
+    "damId": 401
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Sakarya",
+    "dam": "GÜRSÖĞÜT-2",
+    "dailyKot": 583.95,
+    "damId": 1701
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Sakarya",
+    "dam": "GÜRSÖĞÜT-1",
+    "dailyKot": 645.27,
+    "damId": 2401
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Asi",
+    "dam": "BÜYÜK KARAÇAY",
+    "dailyKot": 333.72,
+    "damId": 601
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Seyhan",
+    "dam": "KARAKUZ",
+    "dailyKot": 829.78,
+    "damId": 1002
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Doğu Akdeniz",
+    "dam": "GÖKÇELER",
+    "dailyKot": 168.93,
+    "damId": 1001
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Yeşilırmak",
+    "dam": "ÇEKEREK",
+    "dailyKot": 850.7,
+    "damId": 301
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Doğu Akdeniz",
+    "dam": "PAMUKLUK",
+    "dailyKot": 342.46,
+    "damId": 1101
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Yeşilırmak",
+    "dam": "TEPEKIŞLA",
+    "dailyKot": 247.86,
+    "damId": 38
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Van Gölü",
+    "dam": "MORGEDİK",
+    "dailyKot": 2226.45,
+    "damId": 1201
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Batı Karadeniz",
+    "dam": "ARAÇ BARAJI",
+    "dailyKot": 718.2,
+    "damId": 2301
+   },
+   {
+    "date": "2026-10-14T00:00:00+03:00",
+    "basin": "Kızılırmak",
+    "dam": "KARGI KIZILIRMAK",
+    "dailyKot": 402.5,
+    "damId": 2101
+   }
+  ]
  }
 }
