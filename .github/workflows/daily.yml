@@ -93,6 +93,8 @@ jobs:
           git add -A data
           git diff --cached --quiet && echo "degisiklik yok" || {
             git commit -m "daily: $(date -u +%F)-$(TZ='Europe/Istanbul' date +%H%M) forecast + mape"
+            # yaris korumasi: araya giren push varsa rebase ile ustune al; cakismada push atlanir (sonraki kosu telafi eder)
+            git pull --rebase --autostash origin ${GITHUB_REF#refs/heads/} || echo "pull atlandi"
             git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:${GITHUB_REF#refs/heads/}
           }
         env:

@@ -24,6 +24,8 @@ Contract Invariants:
 - Strict bounds: residual_load_mw > 0 | night_solar == 0.0 | tolerance < 0.01 MW
 ```
 
+> **Freshness:** evening run (~17:00 TSİ) is the production refresh; morning run (~09:30 TSİ) refreshes the IFS 00z input. `scripts/check_ptf_latest.py` fails fast on stale/invalid data — a red check means do NOT consume.
+
 > **Horizon convention:** `T` = last fully completed settlement day (the decision day). Each run publishes exactly 48 hours anchored to `T`: **T+1 = current day, T+2 = next day** — never beyond. Archive snapshots carry `T`'s date in their filename.
 
 ---
