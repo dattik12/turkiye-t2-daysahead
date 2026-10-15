@@ -48,7 +48,9 @@ FLOAT_COLS = ["consumption_pred_mw", "solar_pred_mw", "wind_pred_mw",
 def _rad_series(decision: pd.Timestamp) -> pd.Series:
     d1 = (decision + pd.Timedelta(days=1)).date().isoformat()
     d2 = (decision + pd.Timedelta(days=2)).date().isoformat()
-    return R.forecast_radiation(d1, d2)
+    # +1 gun: radiation.py "onceki saat" hizasini shift(-1) ile kapatir (kenar saati icin).
+    d2e = (decision + pd.Timedelta(days=3)).date().isoformat()
+    return R.forecast_radiation(d1, d2e)
 
 
 def _temp_series(decision: pd.Timestamp) -> pd.Series:

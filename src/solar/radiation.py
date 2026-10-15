@@ -17,19 +17,27 @@ RAD_VAR = "shortwave_radiation"
 
 
 def history_radiation(s: str, e: str) -> pd.Series:
-    """[s,e] tarihce radyasyon (historical-forecast API) -> saatlik ulusal W/m2."""
+    """[s,e] tarihce radyasyon (historical-forecast API) -> saatlik ulusal W/m2.
+
+    Hizalama (14 Eki 2026): Open-Meteo radyasyonu "onceki saatin ortalamasi"
+    etiketlidir; hedef saat t icin [t, t+1) ortalamasina shift(-1) ile hizalanir.
+    Cagiran taraf pencereyi 1 gun fazla cekmeli (kenar saati NaN olur)."""
     df = D.pull_weather_national(s, e, url=C.OM_HISTO_URL)
-    out = df[RAD_VAR].copy()
+    out = df[RAD_VAR].copy().sort_index().shift(-1)
     out.name = "sw_rad_wm2"
-    return out.sort_index()
+    return out
 
 
 def forecast_radiation(s: str, e: str) -> pd.Series:
-    """[s,e] CANLI radyasyon tahmini (forecast API, ecmwf_ifs) -> saatlik ulusal W/m2."""
+    """[s,e] CANLI radyasyon tahmini (forecast API, ecmwf_ifs) -> saatlik ulusal W/m2.
+
+    Hizalama (14 Eki 2026): Open-Meteo radyasyonu "onceki saatin ortalamasi"
+    etiketlidir; hedef saat t icin [t, t+1) ortalamasina shift(-1) ile hizalanir.
+    Cagiran taraf pencereyi 1 gun fazla cekmeli (kenar saati NaN olur)."""
     df = D.forecast_weather(s, e)
-    out = df[RAD_VAR].copy()
+    out = df[RAD_VAR].copy().sort_index().shift(-1)
     out.name = "sw_rad_wm2"
-    return out.sort_index()
+    return out
 
 
 def forecast_temp(s: str, e: str) -> pd.Series:

@@ -35,7 +35,7 @@ Production-grade verified metrics against official system operators:
 | Component | Architecture / Method | Benchmark | Production Metric |
 | --- | --- | --- | --- |
 | **Demand (Load)** | v4.5 LightGBM + Gated Regime MoE (ECMWF IFS) | TEİAŞ Plan (%3.01) | **T+1 %1.38 / T+2 %2.11** *(30-day A/B)* |
-| **Solar (GES)** | 27.4 GW ETKB cap, PR=0.921, Zenith night mask | 66 Licensed Plants | **r = 0.88 shape corr** *(Tem'26 anchor)* |
+| **Solar (GES)** | 27.4 GW ETKB cap, PR=0.921, Zenith night mask | 66 Licensed Plants | **r = 0.97 shape corr** *(Ağu'26 336h; gündüz 0.95 — 14 Eki'26 "önceki saat" hizası düzeltmesi sonrası; öncesi 0.88)* |
 | **Wind (RES)** | 7-Hub NNLS spatial weights + Dual-LGBM | RİTM Forecast (%9.57) | **%9.22 MAPE** *(Spread-blend)* |
 | **Long-Term** | 597 Decision Days Backtest (14,280 points) | TEİAŞ Plan (%3.01) | **T+1 %1.68 / T+2 %2.26** *(597-day)* |
 
