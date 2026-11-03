@@ -9,8 +9,16 @@ for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd_HHmm"'
 if "%STAMP%"=="" set STAMP=unknown
 set LOG=data\logs\morning_%STAMP%.log
 
-"C:\Users\cagatay.bayrak\AppData\Local\Programs\Python\Python311\python.exe" -u scripts\morning_run.py >> "%LOG%" 2>&1
+set PY=C:\Users\cagatay.bayrak\AppData\Local\Programs\Python\Python311\python.exe
+
+"%PY%" -u scripts\morning_run.py >> "%LOG%" 2>&1
 set RC=%ERRORLEVEL%
+
+rem Skor tahtasi: tahmin basariliysa defteri gerceklesen + TEIAS ile guncelle.
+rem Bloklamaz -> RC'yi degistirmez.
+if "%RC%"=="0" (
+  "%PY%" -u -m scripts.morning_scoreboard >> "%LOG%" 2>&1
+)
 
 echo [wrapper] exit=%RC% log=%LOG% >> "%LOG%"
 if not "%RC%"=="0" (
