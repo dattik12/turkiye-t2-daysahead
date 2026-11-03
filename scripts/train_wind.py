@@ -1,8 +1,12 @@
 """RES v2 egitimi: residual-reframe + yon sektoru; 3-yollu holdout, kazanan kaydedilir.
 
 Kullanim:
-    python -m scripts.train_wind            # son 60 gun
-    python -m scripts.train_wind 90         # son 90 gun
+    python -m scripts.train_wind            # son 90 gun (varsayilan)
+    python -m scripts.train_wind 120        # son 120 gun
+
+Pencere taramasi (autoloop_wind.py, 12 blok, 13 agu 2026 -> 3 Kas 2026):
+    45g 15.89 | 60g 14.86 | 90g 14.42 | 120g 14.45
+  -> 90 gun en iyi, 45 gun felaket. Varsayilan bu yuzden 90.
 
 Adaylar: residual / raw+monotonik / RITM (benchmark).
 Kazanan models/wind_lgbm.txt + .mode sidecar'a yazilir.
@@ -44,7 +48,7 @@ def load_spatial_matrix() -> pd.DataFrame:
 
 
 def main() -> None:
-    days = int(sys.argv[1]) if len(sys.argv) > 1 else 60
+    days = int(sys.argv[1]) if len(sys.argv) > 1 else 90
     spatial = os.environ.get("WIND_SPATIAL") == "1"
     end = (pd.Timestamp.now().normalize() - pd.Timedelta(days=2)).date().isoformat()
     start = (pd.Timestamp(end) - pd.Timedelta(days=days - 1)).date().isoformat()
