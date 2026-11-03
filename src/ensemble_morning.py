@@ -20,6 +20,12 @@ from . import models as M
 
 WEIGHTS = {"lgbm": 0.15, "cat": 0.25, "mlp2": 0.60}
 EXPERTS = tuple(WEIGHTS)
+# MLP seed listesi. Tek seed egitim varyansi yuksek; 3 seed ortalamasi 180 gunluk
+# protoklde -0.022 pp kazandirdi, 5 seed ayni sonucu verdi (doyum).
+MLP_SEEDS = [7]
+# Eg itim penceresi (gun). 2000 gun 180 gunluk protoklde en iyi cikti
+# (1000g 1.6584 -> 2000g 1.5707); 2500+ bozuluyor. 720 gun dogrulamasi bekleniyor.
+TRAIN_DAYS = 1000
 
 
 def enabled() -> bool:
@@ -42,11 +48,11 @@ def _fit_cat(X, yv):
     return {"kind": "cat", "model": m}
 
 
-def _fit_mlp(X, yv):
+def _fit_mlp(X, yv, seed: int = 7):
     import torch
     import torch.nn as nn
 
-    torch.manual_seed(7); np.random.seed(7)
+    torch.manual_seed(seed); np.random.seed(seed)
     idx = X.index
     hh = idx.hour.values.astype(np.int64)
     dd = idx.dayofweek.values.astype(np.int64)
@@ -107,7 +113,15 @@ def _fit_mlp(X, yv):
             "glob": glob, "rm": rm, "rs": rs, "dev": dev}
 
 
-_FITTERS = {"lgbm": _fit_lgbm, "cat": _fit_cat, "mlp2": _fit_mlp}
+def _fit_mlp_multi(X, yv):
+    """MLP_SEEDS uzunluguna gore tek ya da cok seed'li egitim."""
+    parts = [_fit_mlp(X, yv, seed=s) for s in MLP_SEEDS]
+    if len(parts) == 1:
+        return parts[0]
+    return {"kind": "mlp2", "parts": parts}
+
+
+_FITTERS = {"lgbm": _fit_lgbm, "cat": _fit_cat, "mlp2": _fit_mlp_multi}
 
 
 # --------------------------------------------------------------------------
@@ -123,6 +137,8 @@ def _pred_cat(e, X):
 
 def _pred_mlp(e, X, tgt):
     import torch
+    if "parts" in e:                       # cok-seed: bagimsiz aglarin ortalamasi
+        return np.mean([_pred_mlp(p, X, tgt) for p in e["parts"]], axis=0)
     Xs = np.nan_to_num((X.values.astype(np.float64) - e["mu"]) / e["sd"],
                        nan=0.0, posinf=0.0, neginf=0.0)
     hh = tgt.hour.values.astype(np.int64)
