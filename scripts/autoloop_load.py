@@ -242,7 +242,17 @@ ROUND3 = [
          params=dict(mlp=dict(seeds=[7, 17, 27]))),
 ]
 
-VARIANTS = ROUND2 if ROUND == "2" else (ROUND3 if ROUND == "3" else ROUND1)
+# Round 4: TERFI DOGRULAMASI — sadece mevcut ve kazanan, 720 gun protokolu.
+ROUND4 = [
+    dict(id="H00_incumbent", hyp="Mevcut uretim: 1000 gun, tek seed, w .15/.25/.60",
+         experts=["lgbm", "cat", "mlp"], w=[.15, .25, .60]),
+    dict(id="H30_winner", hyp="Aday: 2000 gun + 3 seed + w .10/.20/.70",
+         experts=["lgbm", "cat", "mlp"], w=[.10, .20, .70], train_days=2000,
+         params=dict(mlp=dict(seeds=[7, 17, 27]))),
+]
+
+VARIANTS = (ROUND2 if ROUND == "2" else ROUND3 if ROUND == "3"
+            else ROUND4 if ROUND == "4" else ROUND1)
 
 # ---------------- kosu ----------------
 def run_variant(V):
