@@ -79,6 +79,9 @@ V44_THERMAL = False     # KAPALI: Tem-A/B'de T+1 +0.118pp zarar (Agu'da -0.012 f
                         # CDH tepkisi ilk-sicak rejiminde kalibre degil. Kod duruyor, bayrakla acilir.
 V44_RESID = True      # (saat, gun-tipi) shrinkage rezidu duzeltmesi
 V45_REGIME = True     # v4.5 MoE: rejim-hucreli (bayram x ramazan x saat-blogu) uzmanlar
+# Saatlik olay takvimi (bayram/arife/kandil/ramazan/okul pencereleri, 31 bayrak).
+# Sabah sozlesmesinde 720g: tumu -0.064 pp, TATIL -0.690 pp. False = eski davranis.
+USE_HOURLY_CAL = True
 ENSEMBLE_SEEDS = [42]  # v4.4: 3-seed A/B'de gurultu cikti (T+1 +0.012/T+2 -0.069) -> tek seed, maliyet 1x
 ENSEMBLE_MODELS = ["lgbm"]  # production single; per-model tuning workers override
 # --- LEP (TEIAS gun-oncesi plan) ozelligi: is 17:00 TR'de kosar, LEP(T)/LEP(T+1) yayimlidir.

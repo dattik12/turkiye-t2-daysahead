@@ -31,20 +31,37 @@ def mape(a: pd.Series, b: pd.Series) -> float:
     return float((abs(a - b) / b).mean() * 100)
 
 
+def load_spatial_matrix() -> pd.DataFrame:
+    """Cekim icin genis il matrisi (39 il, esit agirlik — sadece API cekimi icin).
+
+    Agirlikli seri (`weighted_speed`) HER ZAMAN WIND_FARMS.csv ile hesaplanir;
+    bu matris yalnizca daha fazla ilden hub ruzgari cekmek icin kullanilir.
+    """
+    p = os.path.join(os.path.dirname(C.WIND_FARMS_CSV), "WIND_FARMS_SPATIAL.csv")
+    df = pd.read_csv(p)
+    assert abs(df["w"].sum() - 1.0) < 1e-3, f"spatial agirliklar toplami 1 degil: {df['w'].sum()}"
+    return df
+
+
 def main() -> None:
     days = int(sys.argv[1]) if len(sys.argv) > 1 else 60
+    spatial = os.environ.get("WIND_SPATIAL") == "1"
     end = (pd.Timestamp.now().normalize() - pd.Timedelta(days=2)).date().isoformat()
     start = (pd.Timestamp(end) - pd.Timedelta(days=days - 1)).date().isoformat()
-    print(f"Egitim penceresi: {start} .. {end} ({days} gun)")
+    print(f"Egitim penceresi: {start} .. {end} ({days} gun) | spatial={spatial}")
 
     gen = PA.pull_generation(start, end).rename("wind_gen_mw")
     fc = PA.pull_ritm_forecast(start, end)["ritm_fc_mw"]
 
-    wl = met.history_wind(start, end)
+    matrix = load_matrix()
+    if spatial:
+        pull_matrix = load_spatial_matrix()
+        wl = met.history_wind(start, end, pull_matrix)
+    else:
+        wl = met.history_wind(start, end)
     spd = met.hub_speed_table(wl)
     w10 = wl.pivot_table(index="dt", columns="city", values="w10")
     wdir = wl.pivot_table(index="dt", columns="city", values="wdir")
-    matrix = load_matrix()
     v = weighted_speed(spd, matrix)
     v10 = weighted_speed(w10, matrix)
     vdir = weighted_direction(wdir, matrix)
@@ -59,6 +76,14 @@ def main() -> None:
     f = M.build_features(v, fc)
     f = M.attach_shear(f, v, v10)
     f = M.attach_direction(f, vdir)
+    sp_cols: list = []
+    if spatial:
+        # 39 il hub hizi ayri ayri: model mekansal deseni kendisi ogrenir
+        for pv in spd.columns:
+            c = f"p_{pv}"
+            f[c] = spd[pv].reindex(f.index).values
+            sp_cols.append(c)
+        print(f"spatial kolon: {len(sp_cols)}")
     if vg is not None:
         f["gfs_w100"] = vg.reindex(f.index).values
         f["nwp_spread"] = (v - vg).abs().reindex(f.index).values
@@ -87,8 +112,8 @@ def main() -> None:
     tr = df[df.index <= tmax - pd.Timedelta(days=21)]
     tr_m2 = tr.copy()
     tr_m2[M.FRESH_COLS] = np.nan                             # D+2 maskesi (sunumdaki dogal NaN)
-    b1 = M.train(tr, target="residual", feats=M.FEATS)       # D+1: taze lag'li
-    b2 = M.train(tr_m2, target="residual", feats=M.SAFE_FEATS)  # D+2: guvenli set
+    b1 = M.train(tr, target="residual", feats=M.FEATS + sp_cols)       # D+1: taze lag'li
+    b2 = M.train(tr_m2, target="residual", feats=M.SAFE_FEATS + sp_cols)  # D+2: guvenli set
     p1_tu = M.predict(b1, tu)
     r_tu = (tu["target_gen"] - p1_tu).groupby(tu.index.hour).mean()
     n_tu = tu.groupby(tu.index.hour).size()

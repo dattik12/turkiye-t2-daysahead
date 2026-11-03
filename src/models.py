@@ -69,6 +69,23 @@ def predict(m, feats: list, X: pd.DataFrame) -> np.ndarray:
     return m.predict(X[feats].astype(cat))
 
 
+def _attach_cal(F: pd.DataFrame) -> pd.DataFrame:
+    """Saatlik olay takvimi bayraklarini feature matrisine ekle.
+
+    Ayni takvim sabah sozlesmesinde 720 gunde -0.064 pp (tatilde -0.690 pp)
+    kazandirdi. Gelecekte bilinen bilgidir -> sizinti yok.
+    USE_HOURLY_CAL=0 ile kapatilir (eski davranisa donus).
+    """
+    if not getattr(C, "USE_HOURLY_CAL", True):
+        return F
+    try:
+        from . import morning as _MO
+        return _MO.attach_calendar(F)
+    except Exception as ex:                      # takvim yoksa sessiz gec
+        print(f"[cal] takvim eklenemedi: {str(ex)[:110]}")
+        return F
+
+
 def train_engine(P, wnat, wdyn, dayfrac, cw, seg_urban, seg_ind, cons,
                  train_idx, horizon, d1_pred: pd.Series | None = None,
                  extra_cols: dict | None = None):
@@ -84,6 +101,7 @@ def train_engine(P, wnat, wdyn, dayfrac, cw, seg_urban, seg_ind, cons,
         if extra_cols:
             for k, v in extra_cols.items():
                 F[k] = v
+        F = _attach_cal(F)
         F["target"] = cons.reindex(train_idx)
         F = F.dropna()
         feats = [c for c in F.columns if c != "target"]
@@ -107,5 +125,6 @@ def predict_pair(models, P, wnat, wdyn, dayfrac, cw, seg_urban, seg_ind,
         if extra_cols:
             for k, v in extra_cols.items():
                 X[k] = v
+        X = _attach_cal(X)
         preds.append(predict(m, feats, X))
     return np.mean(preds, axis=0)

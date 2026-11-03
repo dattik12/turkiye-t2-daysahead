@@ -19,6 +19,21 @@ def load_matrix(csv_path: str | None = None) -> pd.DataFrame:
     return df
 
 
+def load_spatial_matrix() -> pd.DataFrame:
+    """Cekim icin genis il matrisi (39 il).
+
+    SADECE API cekiminde kullanilir; agirlikli seri her zaman `load_matrix()`
+    (WIND_FARMS.csv) ile hesaplanir. Spatial modeller `p_<il>` kolonlarini
+    bekledigi icin egitim ve cikarim ayni matrisi kullanmalidir.
+    """
+    p = os.path.join(os.path.dirname(C.WIND_FARMS_CSV), "WIND_FARMS_SPATIAL.csv")
+    if not os.path.exists(p):
+        return load_matrix()
+    df = pd.read_csv(p)
+    assert abs(df["w"].sum() - 1.0) < 1e-3, f"spatial agirliklar toplami 1 degil: {df['w'].sum()}"
+    return df
+
+
 def weighted_speed(wind_by_city: pd.DataFrame, matrix: pd.DataFrame) -> pd.Series:
     """Sehir x saat ruzgar hizi tablosu -> agirlikli ulusal seri."""
     w = matrix.set_index("province")["w"]

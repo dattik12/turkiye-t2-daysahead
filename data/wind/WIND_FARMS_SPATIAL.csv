@@ -1,0 +1,40 @@
+province,lat,lon,region,region_mw_tureb_ocak26,w,coord_source,weight_status
+Balikesir,39.65,27.89,Marmara,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Canakkale,40.16,26.41,Marmara,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Izmir,38.42,27.14,Marmara,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Manisa,38.62,27.43,Marmara,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Kirklareli,41.74,27.23,Marmara,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Tekirdag,40.98,27.51,Marmara,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Bursa,40.19,29.06,Marmara,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Yalova,40.65,29.27,Marmara,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Sakarya,40.78,30.4,Marmara,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Edirne,41.68,26.56,Marmara,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Bilecik,40.15,29.98,Marmara,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Mugla,37.22,28.36,Ege,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Aydin,37.85,27.84,Ege,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Afyon,38.76,30.54,Ege,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Kutahya,39.42,29.98,Ege,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Usak,38.68,29.41,Ege,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Hatay,36.2,36.16,Akdeniz,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Osmaniye,37.07,36.25,Akdeniz,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Mersin,36.8,34.63,Akdeniz,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Kahramanmaras,37.58,36.93,Akdeniz,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Adana,37.0,35.32,Akdeniz,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Sivas,39.75,37.02,Ic Anadolu,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Kayseri,38.73,35.49,Ic Anadolu,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Konya,37.87,32.48,Ic Anadolu,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Karaman,37.18,33.22,Ic Anadolu,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Nigde,37.97,34.68,Ic Anadolu,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Kirikkale,39.85,33.52,Ic Anadolu,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Kirsehir,39.15,34.16,Ic Anadolu,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Tokat,40.31,36.55,Karadeniz,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Amasya,40.65,35.83,Karadeniz,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Sinop,42.03,35.15,Karadeniz,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Corum,40.55,34.95,Karadeniz,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Kastamonu,41.38,33.78,Karadeniz,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Ordu,40.98,37.88,Karadeniz,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Malatya,38.35,38.31,Dogu/GD Anadolu,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Elazig,38.68,39.22,Dogu/GD Anadolu,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Gaziantep,37.07,37.38,Dogu/GD Anadolu,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Adiyaman,37.76,38.28,Dogu/GD Anadolu,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir
+Erzurum,39.9,41.27,Dogu/GD Anadolu,0,0.02564103,province-centroid-2026-11-03,spatial-pull-only(esit); agirlikli seri icin WIND_FARMS.csv kullanilir

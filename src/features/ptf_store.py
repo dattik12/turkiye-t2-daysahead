@@ -31,7 +31,7 @@ from ..solar import model as SM
 from ..wind import met as WM
 from ..wind import model as WMODEL
 from ..wind import pull_actual as WPA
-from ..wind.weights import load_matrix, weighted_speed
+from ..wind.weights import load_matrix, load_spatial_matrix, weighted_speed
 
 TZ = "Europe/Istanbul"
 PEAK_START, PEAK_END = 8, 20  # 08:00 <= saat < 20:00
@@ -96,7 +96,8 @@ def _blended(idx: pd.DatetimeIndex, d1: str, d2: str,
     gen = WPA.pull_generation(hs, he)
     rfc = WPA.pull_ritm_forecast(hs, he)["ritm_fc_mw"]
     m = load_matrix()
-    wl = WM.forecast_wind(d1, d2)
+    spm = load_spatial_matrix()
+    wl = WM.forecast_wind(d1, d2, spm)   # 39 il cekim (spatial modeller icin)
     spd = WM.hub_speed_table(wl)
     v = weighted_speed(spd, m)
     w10 = wl.pivot_table(index="dt", columns="city", values="w10")
@@ -117,6 +118,9 @@ def _blended(idx: pd.DatetimeIndex, d1: str, d2: str,
     f = WMODEL.build_features(v.reindex(idx).ffill(), ritm.reindex(idx))
     f = WMODEL.attach_shear(f, v, v10)
     f = WMODEL.attach_direction(f, vdir)
+    # spatial modeller p_<il> kolonlarini bekler (egitimle ayni kume)
+    for pv in spd.columns:
+        f[f"p_{pv}"] = spd[pv].reindex(f.index).ffill().values
     if vg is not None:
         f["gfs_w100"] = vg.reindex(f.index).values
         f["nwp_spread"] = (v - vg).abs().reindex(f.index).values
