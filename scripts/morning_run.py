@@ -138,6 +138,9 @@ def run(decision: pd.Timestamp | None = None) -> pd.DataFrame:
 
     X = MO.build_features(y, nat, tgt)
     p = pd.Series(np.asarray(M.predict(model, feats, X)), index=tgt, name="pred_mw")
+    # 28 Ekim yarim-gun carpani (deterministik takvim olayi; bkz. features.halfday_factor)
+    from src import features as _F
+    p = p * _F.halfday_factor(tgt)
     out = pd.DataFrame({"datetime": tgt, "pred_mw": p.values})
     out["actual_mw"] = y.reindex(tgt).values
 

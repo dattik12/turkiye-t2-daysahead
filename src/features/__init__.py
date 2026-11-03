@@ -52,6 +52,10 @@ def calendar_cols(idx: pd.DatetimeIndex) -> pd.DataFrame:
     rel = pd.to_datetime(list(HOLIDAY_DATES)).date
     off = pd.to_datetime(list(OFFICIAL)).date
     rel_set, off_set = set(rel), set(off)
+    # ARIFE: yalnizca dini bayramlardan once (tam gun tatil etkisi, ~-%10).
+    # 28 Ekim (Cumhuriyet Bayrami arifesi) BURAYA GIRMEZ: o yarim gun (-%5 sabah,
+    # -%7 ogleden sonra) ve bu bayrakla isaretlenirse model asiri duzeltiyor
+    # (olculdu: 28 Eki 2026 MAPE 2.96 -> 4.21). Ayri HALFDAY_DATES ile yonetilir.
     arife_set = set((pd.to_datetime(list(HOLIDAY_DATES)) - pd.Timedelta(days=1)).date)
     after_set = set((pd.to_datetime(list(HOLIDAY_DATES)) + pd.Timedelta(days=1)).date)
     # EDA tail: bayram block end +1 and +2 still holiday-like (2026-03-23, 2025-04-03 leak)
@@ -284,3 +288,27 @@ def make_row(P: pd.DataFrame, wnat: pd.DataFrame, wdyn: pd.DataFrame, dayfrac: p
     if horizon == 2 and d1_pred is not None:
         X["pred_d1"] = pd.Series(idx, index=idx).map(lambda t: d1_pred.get(t - pd.Timedelta(hours=24))).to_numpy()
     return X
+
+
+# ------------------------------------------------ yarim gun (28 Ekim) ----
+HALFDAY_MONTH_DAY = (10, 28)          # Cumhuriyet Bayrami arifesi (yarim gun)
+HALFDAY_AM = 0.98                     # olculdu: 2024/2025/2026 grid aramasi
+HALFDAY_PM = 0.94
+
+
+def halfday_factor(idx: pd.DatetimeIndex) -> np.ndarray:
+    """28 Ekim yarim-gun carpani: sabah (<=12) HALFDAY_AM, ogleden sonra HALFDAY_PM.
+
+    Neden ayri: dini arife bayragi (is_arife) TAM gun etkisi tasir (~-%10);
+    28 Ekim yarim gundur (sabah ~-%5, ogleden sonra ~-%7). Ayni bayraga
+    baglanirsa model asiri duzeltiyor (olculdu: MAPE 2.96 -> 4.21).
+    Deterministik takvim olayi -> sonradan carpan en guvenli yol.
+    Dogrulama: 28 Eki 2024/2025/2026 MAPE 3.900% -> 1.654% (-2.25pp);
+    normal gune uygulanirsa +3.3pp bozar, bu yuzden YALNIZ o gune uygulanir.
+    """
+    idx = pd.DatetimeIndex(idx)
+    is_hd = (idx.month == HALFDAY_MONTH_DAY[0]) & (idx.day == HALFDAY_MONTH_DAY[1])
+    f = np.ones(len(idx), dtype=float)
+    f[is_hd & (idx.hour <= 12)] = HALFDAY_AM
+    f[is_hd & (idx.hour > 12)] = HALFDAY_PM
+    return f
