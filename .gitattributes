@@ -1,0 +1,4 @@
+# LightGBM text modelleri: CRLF donusumu parse hatasi veriyor (core.autocrlf=true
+# her satira  ekleyince "Model format error, expect a tree here").
+models/*.txt -text
+models/*.mode -text
