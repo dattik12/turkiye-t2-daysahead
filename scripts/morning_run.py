@@ -112,9 +112,12 @@ def run(decision: pd.Timestamp | None = None) -> pd.DataFrame:
         fc = D.forecast_weather(target.date().isoformat(),
                                 (target + pd.Timedelta(days=1)).date().isoformat())
         fc.index = pd.to_datetime(fc.index)
+        # pandas 3.0: nat.loc[fc.index] henuz olmayan satirlara yazamaz ->
+        # once indeks birlestir, sonra degerleri yerlestir.
+        nat = nat.reindex(nat.index.union(fc.index))
         for c in fc.columns:
             if c in nat:
-                nat.loc[fc.index, c] = fc[c].values
+                nat.loc[fc.index, c] = fc[c].to_numpy()
         print(f"[morning] IFS tahmin eklendi: {fc.index.min()} -> {fc.index.max()}")
     except Exception as ex:
         print(f"[morning] UYARI: IFS tahmin alinamadi ({str(ex)[:90]}) — hava NaN kalir")
