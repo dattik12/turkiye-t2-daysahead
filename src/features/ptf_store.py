@@ -256,7 +256,15 @@ def build_for_decision(decision_date: str | None = None) -> str | None:
         print("PTF: master forecast bos — once daily_run kosmalidir.")
         return None
     if decision_date is None:
-        decision_date = pd.to_datetime(master["decision_date"]).max().strftime("%Y-%m-%d")
+        # Son karar gunu HER ZAMAN 48 satir (T+1+T+2) uretmemis olabilir; ornegin
+        # sabah sozlesmesi farkli bir deftere yazarken master'da yarim blok kalabilir.
+        # Bu yuzden "48 satiri olan en son karar gunu"nu sec.
+        cnt = master.groupby("decision_date").size()
+        full = cnt[cnt >= 48]
+        if full.empty:
+            print("PTF: 48 satirlik karar gunu yok — once daily_run kosmalidir.")
+            return None
+        decision_date = pd.to_datetime(full.index).max().strftime("%Y-%m-%d")
     decision = pd.Timestamp(decision_date)
     try:
         rad = _rad_series(decision)

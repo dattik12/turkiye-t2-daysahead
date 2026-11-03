@@ -14,6 +14,7 @@ saatte lag48'i (ve h<=8'de lag24'u) bosuna atiyordu. Bu modul lag'i KARAR
 ANINA gore dogru sekilde hesaplar.
 """
 from __future__ import annotations
+from pathlib import Path
 import numpy as np
 import pandas as pd
 
@@ -116,3 +117,42 @@ def build_features(y: pd.Series, wnat: pd.DataFrame, target_idx: pd.DatetimeInde
 
 def feature_cols(F: pd.DataFrame) -> list:
     return [c for c in F.columns if c != "target"]
+
+
+# ---------------------------------------------------------------------------
+# Saatlik olay takvimi (Excel: turkiye_ozel_gun_saatlik_talep_feature_takvimi)
+# Ilk yil (asagi-akim) bayram/arife/kandil/okul pencerelerini saat bazinda verir.
+# Gelecekte bilinen bilgidir -> sizinti yok.
+# ---------------------------------------------------------------------------
+CAL_PATH = Path(__file__).resolve().parents[1] / "data" / "calendar" / "hourly_events.parquet"
+_cal_cache = None
+
+
+def load_calendar(path=None):
+    """Saatlik olay bayraklarini yukle (yoksa None)."""
+    global _cal_cache
+    p = Path(path) if path is not None else CAL_PATH
+    if _cal_cache is not None and path is None:
+        return _cal_cache
+    if not p.exists():
+        return None
+    c = pd.read_parquet(p)
+    c.index = pd.DatetimeIndex(c.index)
+    c = c[~c.index.duplicated(keep="last")].sort_index()
+    c = c.astype("float32")
+    if path is None:
+        _cal_cache = c
+    return c
+
+
+def attach_calendar(F: pd.DataFrame, cal=None) -> pd.DataFrame:
+    """Hedef zaman damgasina gore saatlik takvim bayraklarini ekle."""
+    if cal is None:
+        cal = load_calendar()
+    if cal is None:
+        return F
+    idx = pd.DatetimeIndex(F.index)
+    add = cal.reindex(idx)
+    add.index = F.index
+    add = add.fillna(0.0).astype("float32")
+    return pd.concat([F, add], axis=1)

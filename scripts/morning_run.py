@@ -130,6 +130,7 @@ def run(decision: pd.Timestamp | None = None) -> pd.DataFrame:
     # gece saatlerinde egitir (n~9000) ve gunduz tahminleri coker.
     Xtr = MO.build_features(y, nat, tr_idx)
     Xtr = Xtr[y.reindex(Xtr.index).notna()]
+    Xtr = MO.attach_calendar(Xtr)          # saatlik bayram/arife/kandil/okul pencereleri
     if len(Xtr) < 3000:
         raise RuntimeError(f"egitim satiri yetersiz: {len(Xtr)}")
     feats = MO.feature_cols(Xtr)
@@ -137,6 +138,7 @@ def run(decision: pd.Timestamp | None = None) -> pd.DataFrame:
     print(f"[morning] model fit: n={len(Xtr)} feats={len(feats)}")
 
     X = MO.build_features(y, nat, tgt)
+    X = MO.attach_calendar(X)
     p = pd.Series(np.asarray(M.predict(model, feats, X)), index=tgt, name="pred_mw")
     # 28 Ekim yarim-gun carpani (deterministik takvim olayi; bkz. features.halfday_factor)
     from src import features as _F
@@ -154,26 +156,28 @@ def run(decision: pd.Timestamp | None = None) -> pd.DataFrame:
     print(f"[morning] tepe {out.pred_mw.max():,.0f} MW @{out.loc[out.pred_mw.idxmax(),'datetime'].hour:02d}:00"
           f" | ort {out.pred_mw.mean():,.0f} | dip {out.pred_mw.min():,.0f}")
 
-    # --- 5) master'a isle (skor defteri) ---
+    # --- 5) kendi skor defterine yaz ---
+    # ONEMLI: ortak master'a (forecast_results.csv) YAZILMAZ. Orada horizon=1
+    # "karar gunu + 1" demek; sabah sozlesmesinde ise "yarin" demek. Ayni anahtara
+    # iki farkli anlam yazinca PTF builder 48 satir beklerken 24 buluyordu.
     from src import scoring as S
-    master = S.load_master()
+    mpath = os.path.join(C.RESULTS_DIR, "morning_history.csv")
     new = out[["datetime", "pred_mw"]].copy()
+    new = new.rename(columns={"datetime": "dt", "pred_mw": "pred_mw"})
     new["decision_date"] = decision.date().isoformat()
-    new = new.rename(columns={"datetime": "dt"})
-    new["horizon"] = 1   # sabah sozlesmesi: hedef = yarim
-    new["load_plan_mw"] = np.nan
+    new["target_date"] = target.date().isoformat()
     new["actual_mw"] = np.nan
     new["mape_hour"] = np.nan
-    new["mae_mw"] = np.nan
-    key = ["decision_date", "dt", "horizon"]
-    new = new[key[:1] + ["dt", "horizon", "pred_mw", "load_plan_mw", "actual_mw", "mape_hour", "mae_mw"]]
-    if not master.empty:
-        mk = master.set_index(key).index
-        nk = new.set_index(key).index
-        master = master[~mk.isin(nk)]
-    master = pd.concat([master, new], ignore_index=True)
-    master = master.drop_duplicates(subset=key, keep="last")
-    S.store_master(master)
+    hist = pd.read_csv(mpath) if os.path.exists(mpath) else pd.DataFrame()
+    if not hist.empty:
+        hist = hist[hist["target_date"] != new["target_date"].iloc[0]]
+        hist["dt"] = pd.to_datetime(hist["dt"])
+        new["dt"] = pd.to_datetime(new["dt"])
+        hist = pd.concat([hist, new], ignore_index=True)
+    else:
+        hist = new
+    hist.to_csv(mpath, index=False)
+    print(f"[morning] skor defteri: {mpath} ({len(hist)} satir)")
     return out
 
 
