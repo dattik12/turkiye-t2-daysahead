@@ -122,9 +122,10 @@ def run(decision: pd.Timestamp | None = None) -> pd.DataFrame:
     except Exception as ex:
         print(f"[morning] UYARI: IFS tahmin alinamadi ({str(ex)[:90]}) — hava NaN kalir")
 
-    # --- 3) model: son 1000 gun, karar aniye kadar veriyle ---
+    from src import ensemble_morning as EN
+    # --- 3) model: son EN.TRAIN_DAYS gun, karar aniye kadar veriyle ---
     tr_end = decision + pd.Timedelta(hours=MO.DECISION_HOUR - 1)   # 08:00
-    tr_start = tr_end - pd.Timedelta(days=C.TRAIN_DAYS)
+    tr_start = tr_end - pd.Timedelta(days=EN.TRAIN_DAYS)
     tr_idx = pd.date_range(tr_start, tr_end, freq="h")
     # NOT: dropna() YOK. lag24 kural geregi h>8'de NaN; dropna modeli yalnizca
     # gece saatlerinde egitir (n~9000) ve gunduz tahminleri coker.

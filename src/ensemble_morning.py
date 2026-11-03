@@ -18,14 +18,17 @@ import pandas as pd
 
 from . import models as M
 
-WEIGHTS = {"lgbm": 0.15, "cat": 0.25, "mlp2": 0.60}
+WEIGHTS = {"lgbm": 0.10, "cat": 0.20, "mlp2": 0.70}
 EXPERTS = tuple(WEIGHTS)
 # MLP seed listesi. Tek seed egitim varyansi yuksek; 3 seed ortalamasi 180 gunluk
-# protoklde -0.022 pp kazandirdi, 5 seed ayni sonucu verdi (doyum).
-MLP_SEEDS = [7]
-# Eg itim penceresi (gun). 2000 gun 180 gunluk protoklde en iyi cikti
-# (1000g 1.6584 -> 2000g 1.5707); 2500+ bozuluyor. 720 gun dogrulamasi bekleniyor.
-TRAIN_DAYS = 1000
+# protoklde -0.022 pp, 720 gunluk terfi dogrulamasinda toplulukla birlikte -0.043 pp.
+# 5 seed ayni sonucu verdi (doyum) -> 3'te birakildi.
+MLP_SEEDS = [7, 17, 27]
+# Egitim penceresi (gun). Pencere taramasi (180 gun, ref 1.6584):
+#   1000g 1.6584 | 1500g 1.5931 | 2000g 1.5707 | 2500g 1.6257
+#   3000g 1.7125 | 4500g 1.9126  -> net tepe 2000.
+# 720 gunluk terfi dogrulamasi: 1.6281 -> 1.5851 (-0.043).
+TRAIN_DAYS = 2000
 
 
 def enabled() -> bool:
