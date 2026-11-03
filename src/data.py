@@ -252,3 +252,18 @@ def load_or_create_weather() -> tuple:
         except Exception as ex:
             print(f"  [weather] cities refresh atlandi: {str(ex)[:80]}")
     return nat, cities
+
+
+# --------------------------------------------------- SABAH SOZLESMESI ----
+def pull_today_partial(days_back: int = 0) -> pd.DataFrame:
+    """Bugunun (veya days_back gunun) TAM OLMAYAN rt-cons saatlerini cek.
+
+    `append_consumption` leak guard'i tam olmayan gunu siler — repo'nun
+    decision=last_full_day varsayimi icin dogru, ama sabah 09:00 sozlesmesi
+    icin tam tersi: bugunun 00-08 saatleri tam da kullanmak istedigimiz sey.
+    Bu fonksiyon guard'i ATLAR; cagiran taraf lag kuraliyla (h+16) korur.
+    """
+    import datetime as _dt
+    day = (_dt.date.today() - _dt.timedelta(days=days_back)).isoformat()
+    fr = pull_epias(day, day, "rt-cons")
+    return fr

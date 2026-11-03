@@ -1,0 +1,118 @@
+"""SABAH KOŞUSU — yarimin 24 saatlik tahmini (tek urun sozlesmesi).
+
+Sozlesme:
+  KOSU      : her gun 09:00 TR
+  KARAR ANI : bugun 09:00 (son tamamlanmis saat 08:00)
+  URETIM    : yarinin 24 saati (D+1 00:00 .. 23:00)
+  LAG KURALI: hedef saat h icin bilinen en taze saat = h + 16 saat oncei
+              -> lag L ancak L >= h + 16 ise kullanilabilir
+  HAVA      : IFS 00z
+  LEP       : sabah yayimlanmamis olur -> devre disi
+
+Eski T+2 modeli lag'i hedefe gore >=72'ye sabitliyordu; bu, h<=32 olan her
+saatte lag48'i (ve h<=8'de lag24'u) bosuna atiyordu. Bu modul lag'i KARAR
+ANINA gore dogru sekilde hesaplar.
+"""
+from __future__ import annotations
+import numpy as np
+import pandas as pd
+
+from . import config as C
+
+DECISION_HOUR = 9          # kosu saati (TR)
+KNOWN_BASE_H = DECISION_HOUR + 7   # = 16: hedef saat h icin minimum lag
+ALWAYS_LAGS = [48, 72, 96, 120, 144, 168, 336]   # her h icin guvenli
+FRESH_LAGS = [24]                                # sadece h <= 8 icin guvenli
+
+
+def known_cutoff(target_idx: pd.DatetimeIndex) -> pd.DatetimeIndex:
+    """Her hedef saat icin karar aninda bilinen EN SON tam saat."""
+    h = target_idx.hour.to_numpy()
+    return target_idx - pd.to_timedelta(h + KNOWN_BASE_H, unit="h")
+
+
+def _lag_known(L: int, h: np.ndarray) -> np.ndarray:
+    """lag L, hedef saat h icin karar aninda biliniyor mu?"""
+    return L >= (h + KNOWN_BASE_H)
+
+
+def build_features(y: pd.Series, wnat: pd.DataFrame, target_idx: pd.DatetimeIndex,
+                   cal: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Hedef saatlere gore ozellik tablosu. Kaynak verideki her deger
+    karar aninda (bugun 09:00) bilinen tek bir saate baglanir."""
+    target_idx = pd.DatetimeIndex(target_idx)
+    if isinstance(wnat, pd.Series):
+        wnat = wnat.to_frame()
+    wnat = wnat[~wnat.index.duplicated(keep="last")].sort_index()
+    y = y[~y.index.duplicated(keep="last")].sort_index()
+    h = target_idx.hour.to_numpy()
+    anchor = known_cutoff(target_idx)          # bilinen son tam saat
+    F = pd.DataFrame(index=target_idx)
+
+    # --- taze lag'lar (hedefin kendi saat-eslisi, karar-anina gore guvenli) ---
+    for L in ALWAYS_LAGS:
+        F[f"lag{L}"] = y.reindex(target_idx - pd.Timedelta(hours=L)).to_numpy()
+    for L in FRESH_LAGS:
+        v = y.reindex(target_idx - pd.Timedelta(hours=L)).to_numpy()
+        F[f"lag{L}"] = np.where(_lag_known(L, h), v, np.nan)
+
+    # --- ayni-saat ortalamasi: yalnizca BILINEN gunler ---
+    shifts = list(range(24, 193, 24))
+    M = pd.DataFrame({f"s{L}": y.reindex(target_idx - pd.Timedelta(hours=L)).to_numpy()
+                      for L in shifts}, index=target_idx)
+    known = pd.DataFrame({f"s{L}": _lag_known(L, h) for L in shifts}, index=target_idx)
+    Mv = M.where(known)
+    F["samehr_known_mean"] = Mv.mean(axis=1)
+    F["samehr_known_median"] = Mv.median(axis=1)
+    F["samehr_known_n"] = known.sum(axis=1).astype(np.int8)
+
+    # --- karar anina bagli rolling ozetler (bilinen pencere) ---
+    r24 = y.rolling(24, min_periods=24).mean()
+    r24max = y.rolling(24, min_periods=24).max()
+    r168 = y.rolling(168, min_periods=168).mean()
+    r9 = y.rolling(9, min_periods=9).mean()
+    F["roll24_at_anchor"] = r24.reindex(anchor).to_numpy()
+    F["roll24max_at_anchor"] = r24max.reindex(anchor).to_numpy()
+    F["roll168_at_anchor"] = r168.reindex(anchor).to_numpy()
+    F["roll9_today"] = r9.reindex(anchor).to_numpy()   # bugun 00-08 ortalamasi
+
+    # --- gunluk ozetler (dun / onceden) ---
+    g = y.groupby(y.index.normalize())
+    dm, dmax, dmin = g.mean(), g.max(), g.min()
+    dnorm = anchor.normalize()
+    for off, nm, src in [(1, "day_mean_D1", dm), (1, "day_max_D1", dmax),
+                         (1, "day_min_D1", dmin), (2, "day_mean_D2", dm),
+                         (8, "day_mean_D1_8", dm)]:
+        F[nm] = (dnorm - pd.Timedelta(days=off)).map(src).to_numpy()
+    F["day_delta"] = F["day_mean_D1"] - F["day_mean_D1_8"]
+    F["day_mean_today_partial"] = F["roll9_today"]
+
+    # --- takvim ---
+    if cal is None:
+        from .features import calendar_cols
+        cal = calendar_cols(target_idx)
+    for c in ["hour", "weekday", "month", "hour_sin", "hour_cos", "dow_sin", "dow_cos",
+              "doy_sin", "doy_cos", "is_holiday", "is_official", "is_arife",
+              "is_after_holiday", "is_holiday_tail", "is_bridge", "is_holiday_effect",
+              "holiday_day_index", "days_after_holiday", "ramadan_day"]:
+        if c in cal:
+            F[c] = cal[c].reindex(target_idx).to_numpy()
+
+    # --- hava (hedef saatin IFS tahmini) ---
+    for c in ["temperature_2m", "apparent_temperature", "relative_humidity_2m",
+              "shortwave_radiation", "wind_speed_10m", "precipitation", "cloud_cover"]:
+        if c in wnat:
+            F[c] = wnat[c].reindex(target_idx).to_numpy()
+    if "temperature_2m" in wnat:
+        t = wnat["temperature_2m"].reindex(target_idx)
+        F["CDD"] = (t - 26.0).clip(lower=0)
+        F["HDD"] = (16.0 - t).clip(lower=0)
+        F["temp_diff_1h"] = t.to_numpy() - wnat["temperature_2m"].reindex(
+            target_idx - pd.Timedelta(hours=1)).to_numpy()
+        roll30 = wnat["temperature_2m"].rolling(30 * 24, min_periods=30 * 24).mean().shift(1)
+        F["temp_anomaly_30d"] = (t - roll30.reindex(target_idx)).to_numpy()
+    return F
+
+
+def feature_cols(F: pd.DataFrame) -> list:
+    return [c for c in F.columns if c != "target"]
