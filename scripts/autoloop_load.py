@@ -218,7 +218,31 @@ ROUND2 = [
          params=dict(mlp=dict(seeds=[7, 17, 27], epochs=120))),
 ]
 
-VARIANTS = ROUND2 if ROUND == "2" else ROUND1
+# Round 2: egitim penceresi baskin kaldirac (2000 > 1500). Round 3 sinir ariyor.
+ROUND3 = [
+    dict(id="H00_incumbent", hyp="Mevcut: lgbm .15 / cat .25 / mlp .60 (referans)",
+         experts=["lgbm", "cat", "mlp"], w=[.15, .25, .60]),
+    dict(id="H20_s3_2000_mlpw", hyp="2000g + MLP .70 (round2'nin iki bulgusu birlikte)",
+         experts=["lgbm", "cat", "mlp"], w=[.10, .20, .70], train_days=2000,
+         params=dict(mlp=dict(seeds=[7, 17, 27]))),
+    dict(id="H21_s3_tl2500", hyp="2500 gun daha iyi mi (trend suruyor mu)",
+         experts=["lgbm", "cat", "mlp"], w=[.15, .25, .60], train_days=2500,
+         params=dict(mlp=dict(seeds=[7, 17, 27]))),
+    dict(id="H22_s3_tl3000", hyp="3000 gun",
+         experts=["lgbm", "cat", "mlp"], w=[.15, .25, .60], train_days=3000,
+         params=dict(mlp=dict(seeds=[7, 17, 27]))),
+    dict(id="H23_s3_2500_mlpw", hyp="2500g + MLP .70",
+         experts=["lgbm", "cat", "mlp"], w=[.10, .20, .70], train_days=2500,
+         params=dict(mlp=dict(seeds=[7, 17, 27]))),
+    dict(id="H24_s3_tl4500", hyp="4500 gun = tum veri gecmisi (doyum testi)",
+         experts=["lgbm", "cat", "mlp"], w=[.15, .25, .60], train_days=4500,
+         params=dict(mlp=dict(seeds=[7, 17, 27]))),
+    dict(id="H25_s3_2000_xgb", hyp="2000g'de XGBoost tekrar faydali olur mu",
+         experts=["lgbm", "cat", "xgb", "mlp"], w=[.12, .18, .18, .52], train_days=2000,
+         params=dict(mlp=dict(seeds=[7, 17, 27]))),
+]
+
+VARIANTS = ROUND2 if ROUND == "2" else (ROUND3 if ROUND == "3" else ROUND1)
 
 # ---------------- kosu ----------------
 def run_variant(V):
