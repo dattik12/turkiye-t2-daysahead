@@ -134,12 +134,14 @@ def run(decision: pd.Timestamp | None = None) -> pd.DataFrame:
     if len(Xtr) < 3000:
         raise RuntimeError(f"egitim satiri yetersiz: {len(Xtr)}")
     feats = MO.feature_cols(Xtr)
-    model, feats = M.fit(Xtr, y.reindex(Xtr.index), feats)
-    print(f"[morning] model fit: n={len(Xtr)} feats={len(feats)}")
+    from src import ensemble_morning as EN
+    models = EN.fit(Xtr, y.reindex(Xtr.index))
+    print(f"[morning] model fit: n={len(Xtr)} feats={len(feats)} uzman={list(models)}")
 
     X = MO.build_features(y, nat, tgt)
     X = MO.attach_calendar(X)
-    p = pd.Series(np.asarray(M.predict(model, feats, X)), index=tgt, name="pred_mw")
+    p = EN.predict(models, X, tgt)
+    p.index = tgt
     # 28 Ekim yarim-gun carpani (deterministik takvim olayi; bkz. features.halfday_factor)
     from src import features as _F
     p = p * _F.halfday_factor(tgt)
