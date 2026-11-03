@@ -22,3 +22,5 @@ data/results/xgb_tuning*.py
 data/results/*_ultra*.py
 lgbm_*.py
 lgbm_*.log
+
+data/logs/
