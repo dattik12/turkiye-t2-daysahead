@@ -170,6 +170,38 @@ def run(decision: pd.Timestamp | None = None) -> pd.DataFrame:
         print("[morning] bias duzeltmesi KAPALI")
     out = pd.DataFrame({"datetime": tgt, "pred_mw": p.values})
     out["pred_raw_mw"] = p_raw.values          # bias duzeltmesi oncesi (canli kiyas icin)
+
+    # --- GUNES + RUZGAR: sabah urunu TAM fiziksel denge olmali ---
+    # Onceden yalniz yuk vardi; gunes/ruzgar PTF hattinda ayri hesaplaniyordu.
+    # Ayni kaynaklari burada da cagiriyoruz ki tek dosya tam dengeyi versin.
+    try:
+        from src.features import ptf_store as _PS
+        from src.solar import model as _SM
+        _idx = pd.DatetimeIndex(tgt)
+        _naive = _idx.tz_localize(None) if _idx.tz is not None else _idx
+        _rad = _PS._rad_series(decision)
+        _tmp = _PS._temp_series(decision)
+        for _s in (_rad, _tmp):
+            if (_s.index.tz is not None) != (_naive.tz is not None):
+                _s.index = _s.index.tz_localize(None) if _s.index.tz is not None else _s.index.tz_localize("Europe/Istanbul")
+        _sol = _SM.solar_from_radiation(_rad.reindex(_naive), C.SOLAR_CAPACITY_MW,
+                                        C.SOLAR_PR, temp_c=_tmp.reindex(_naive))
+        _wind, _wst = _PS._wind_series(decision, min_cov=24)   # sabah: yalniz yarin gerekli
+        if (_wind.index.tz is not None) != (_naive.tz is not None):
+            _wind.index = _wind.index.tz_localize(None) if _wind.index.tz is not None else _wind.index.tz_localize("Europe/Istanbul")
+        _wind = _wind.reindex(_naive)
+        out["solar_mw"] = _sol.to_numpy()
+        out["wind_mw"] = _wind.to_numpy()
+        out["residual_mw"] = out["pred_mw"].to_numpy() - out["solar_mw"].to_numpy() - out["wind_mw"].to_numpy()
+        out["solar_mw"] = out["solar_mw"].fillna(0.0).clip(lower=0)
+        out["wind_mw"] = out["wind_mw"].clip(lower=0)
+        print(f"[morning] gunes tepe {out['solar_mw'].max():,.0f} | ruzgar tepe "
+              f"{out['wind_mw'].max():,.0f} | durum {_wst}")
+    except Exception as ex:
+        print(f"[morning] UYARI: gunes/ruzgar eklenemedi ({str(ex)[:90]})")
+        out["solar_mw"] = np.nan
+        out["wind_mw"] = np.nan
+        out["residual_mw"] = np.nan
     out["actual_mw"] = y.reindex(tgt).values
 
     # --- 4) yazim ---

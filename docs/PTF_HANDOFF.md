@@ -9,16 +9,31 @@ Son güncelleme: **2026-11-04**
 
 ## 1. Ne alacaksın
 
-Tek dosya, iki format:
+**İki dosya, ikisi de tam fiziksel denge:**
 
 ```
-data/forecast/ptf_features/latest.parquet
-data/forecast/ptf_features/latest.csv
+data/forecast/morning/yarin_YYYY-MM-DD.parquet   → yarının 24 saati  (09:00)
+data/forecast/ptf_features/latest.parquet        → 48 saatlik blok    (09:30 + 17:00)
 ```
 
-Arşiv: `data/forecast/ptf_features/archive/ptf_features_<tarih>_<sabah|aksam>.parquet`
+`data/forecast/ptf_features/latest.csv` de var. Arşiv:
+`data/forecast/ptf_features/archive/ptf_features_<tarih>_<sabah|aksam>.parquet`
 
 **48 satır** = iki gün × 24 saat. `horizon` kolonu hangi gün olduğunu söyler.
+
+### Sabah ürünü (09:00) kolonları
+
+| Kolon | Anlam |
+|---|---|
+| `datetime` | Hedef saat |
+| `pred_mw` | Yük tahmini — **bias düzeltmeli** (ana ürün) |
+| `pred_raw_mw` | Düzeltme öncesi ham yük (karşılaştırma için) |
+| `solar_mw` | GES üretimi |
+| `wind_mw` | RES üretimi |
+| `residual_mw` | **yük − güneş − rüzgar** |
+| `actual_mw` | Gerçekleşme (sonradan dolar) |
+
+Kimlik: `pred_mw − solar_mw − wind_mw − residual_mw == 0`. Doğrulandı: 0.000000.
 
 ---
 

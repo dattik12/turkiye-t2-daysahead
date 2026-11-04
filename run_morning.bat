@@ -18,6 +18,8 @@ rem Skor tahtasi: tahmin basariliysa defteri gerceklesen + TEIAS ile guncelle.
 rem Bloklamaz -> RC'yi degistirmez.
 if "%RC%"=="0" (
   "%PY%" -u -m scripts.morning_scoreboard >> "%LOG%" 2>&1
+  rem Sabah urununu GitHub'a tasi (ayri klon uzerinden; bloklamaz).
+  call push_morning.bat >> "%LOG%" 2>&1
 )
 
 echo [wrapper] exit=%RC% log=%LOG% >> "%LOG%"

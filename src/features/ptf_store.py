@@ -62,15 +62,17 @@ def _temp_series(decision: pd.Timestamp) -> pd.Series:
     return R.forecast_temp(d1, d2)
 
 
-def _wind_series(decision: pd.Timestamp) -> tuple[pd.Series, str]:
+def _wind_series(decision: pd.Timestamp, min_cov: int = 40) -> tuple[pd.Series, str]:
     """RES: birincil BLEND (RITM + dual-model duzeltme) -> saf RITM -> fallback(NaN).
-    NOT: dual model residual ogrenir (taban=RITM); RITM yokken tek basina kosmaz."""
+    NOT: dual model residual ogrenir (taban=RITM); RITM yokken tek basina kosmaz.
+    min_cov: gereken RITM kapsama saati. PTF 48 saat ister (40); sabah urunu yalniz
+    yarin icin uretir ve RITM ikinci gunu henuz yayinlamamis olabilir -> 24 verilir."""
     d1 = (decision + pd.Timedelta(days=1)).date().isoformat()
     d2 = (decision + pd.Timedelta(days=2)).date().isoformat()
     idx = pd.date_range(decision + pd.Timedelta(days=1), periods=48, freq="h")
     try:
         r = WPA.pull_ritm_forecast(d1, d2)["ritm_fc_mw"].reindex(idx)
-        if r.notna().sum() < 40:
+        if r.notna().sum() < min_cov:
             print("PTF uyari: RITM kapsama yetersiz")
             return pd.Series(np.nan, index=idx), "fallback"
     except Exception as ex:
