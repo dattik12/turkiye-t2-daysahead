@@ -101,7 +101,10 @@ def main() -> None:
     f["gen_lag168"] = gen.reindex(back168).values
     f["gen_lag336"] = gen.reindex(back336).values
     f["gen_roll24"] = gen.rolling(24, min_periods=24).mean().shift(24).reindex(f.index).values
-    f["gen_roll168"] = gen.rolling(168, min_periods=168).mean().reindex(f.index).values
+    # SIZINTI DUZELTMESI: shift YOKTU -> 168 saatlik ortalama hedef saatin KENDISINI
+    # iceriyordu (egitimde dolu, canlida daima NaN). Dogrusu wind_spatial_wf2.py:60 ile ayni:
+    # hedef saatten 168 saat ONCE biten pencere.
+    f["gen_roll168"] = gen.shift(168).rolling(168, min_periods=168).mean().reindex(f.index).values
     err = (gen - fc.reindex(gen.index)).rename("err")
     f["err_lag24"] = err.reindex(back24).values
     f["err_lag48"] = err.reindex(back48).values

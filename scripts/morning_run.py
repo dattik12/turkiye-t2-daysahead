@@ -161,6 +161,10 @@ def run(decision: pd.Timestamp | None = None) -> pd.DataFrame:
             with open(_bias_path, encoding="utf-8") as _fh:
                 _tbl = _json.load(_fh)["bias_mw_by_hour"]
             _corr = pd.Series([_tbl.get(str(h), 0.0) for h in tgt.hour], index=tgt, dtype=float)
+            # SINIR: saatlik sapma zamanla kayiyor (iki yari korelasyonu 0.508). 90 gunluk
+            # pencere bazen uc deger uretiyor (sabah -946 MW). Asiri duzeltmeyi engellemek
+            # icin |duzeltme| <= 400 MW ile kirpiliyor (uzun donem ortalamasina yakin).
+            _corr = _corr.clip(-400, 400)
             p = p - _corr
             print(f"[morning] bias duzeltmesi: ort {_corr.mean():+.0f} MW "
                   f"(ham ort {p_raw.mean():,.0f} -> {p.mean():,.0f})")
@@ -205,12 +209,23 @@ def run(decision: pd.Timestamp | None = None) -> pd.DataFrame:
     out["actual_mw"] = y.reindex(tgt).values
 
     # --- 4) yazim ---
+    # KOSU DAMGASI: ayni hedef gun icin 09:00 vintage'i AKSAм kosusu tarafindan
+    # eziliyordu (ML denetimi). Artik her kosu arsivlenir; skor 09:00 kosusundan alinir.
+    _now = pd.Timestamp.now()
+    run_slot = "0900" if _now.hour < 12 else "aksam"
     os.makedirs(OUT_DIR, exist_ok=True)
     day_path = os.path.join(OUT_DIR, f"yarin_{target.date().isoformat()}.parquet")
     out.to_parquet(day_path, index=False)
     latest = os.path.join(OUT_DIR, "latest_yarin.parquet")
     out.to_parquet(latest, index=False)
-    print(f"[morning] yazildi: {day_path}")
+    try:
+        _arch = os.path.join(OUT_DIR, "archive")
+        os.makedirs(_arch, exist_ok=True)
+        out.to_parquet(os.path.join(
+            _arch, f"yarin_{target.date().isoformat()}_{run_slot}_{_now:%Y%m%d_%H%M}.parquet"), index=False)
+    except Exception as ex:
+        print(f"[morning] UYARI: arsiv yazilamadi ({str(ex)[:60]})")
+    print(f"[morning] yazildi: {day_path} (slot={run_slot} {_now:%H:%M})")
     print(f"[morning] tepe {out.pred_mw.max():,.0f} MW @{out.loc[out.pred_mw.idxmax(),'datetime'].hour:02d}:00"
           f" | ort {out.pred_mw.mean():,.0f} | dip {out.pred_mw.min():,.0f}")
 
@@ -224,11 +239,19 @@ def run(decision: pd.Timestamp | None = None) -> pd.DataFrame:
     new = new.rename(columns={"datetime": "dt", "pred_mw": "pred_mw"})
     new["decision_date"] = decision.date().isoformat()
     new["target_date"] = target.date().isoformat()
+    new["run_slot"] = run_slot
+    new["run_ts"] = _now.isoformat()
     new["actual_mw"] = np.nan
     new["mape_hour"] = np.nan
     hist = pd.read_csv(mpath) if os.path.exists(mpath) else pd.DataFrame()
     if not hist.empty:
-        hist = hist[hist["target_date"] != new["target_date"].iloc[0]]
+        # ESKI DAVRANIS: ayni hedef gunun TUM satirlari silinip son kosu yaziliyordu ->
+        # 09:00 vintage'i aksam kosusuyla eziliyor, canli skor 09:00'u hic puanlamiyordu.
+        # YENI: (target_date, run_slot) anahtari; iki slot yan yana yasar.
+        if "run_slot" not in hist.columns:
+            hist["run_slot"] = "0900"
+        _dup = (hist["target_date"] == new["target_date"].iloc[0]) & (hist["run_slot"] == run_slot)
+        hist = hist[~_dup]
         hist["dt"] = pd.to_datetime(hist["dt"])
         new["dt"] = pd.to_datetime(new["dt"])
         hist = pd.concat([hist, new], ignore_index=True)

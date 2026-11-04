@@ -1,42 +1,48 @@
 {
  "kind": "load_hour_bias",
  "source": "C:\\projeler\\autoloop\\expert_preds.parquet",
- "n_hours": 18720,
- "window": [
-  "2024-09-14",
+ "fit_days": 90,
+ "fit_window": [
+  "2026-08-05",
   "2026-11-02"
  ],
+ "n_hours": 2160,
  "weights": {
   "lgbm": 0.1,
   "cat": 0.2,
   "mlp": 0.7
  },
  "bias_mw_by_hour": {
-  "0": -171.2,
-  "1": -140.7,
-  "2": -103.7,
-  "3": -101.7,
-  "4": -92.1,
-  "5": -128.6,
-  "6": -193.4,
-  "7": -231.5,
-  "8": -356.2,
-  "9": -371.3,
-  "10": -360.6,
-  "11": -367.1,
-  "12": -353.5,
-  "13": -372.5,
-  "14": -373.7,
-  "15": -361.7,
-  "16": -382.3,
-  "17": -471.6,
-  "18": -483.9,
-  "19": -441.9,
-  "20": -411.2,
-  "21": -353.1,
-  "22": -264.8,
-  "23": -231.3
+  "0": -57.7,
+  "1": -20.9,
+  "2": -7.7,
+  "3": 2.7,
+  "4": 21.9,
+  "5": -74.2,
+  "6": -305.6,
+  "7": -474.5,
+  "8": -878.4,
+  "9": -945.9,
+  "10": -762.9,
+  "11": -619.4,
+  "12": -408.9,
+  "13": -395.8,
+  "14": -348.1,
+  "15": -158.0,
+  "16": -118.6,
+  "17": -303.4,
+  "18": -509.2,
+  "19": -473.6,
+  "20": -400.2,
+  "21": -306.3,
+  "22": -189.9,
+  "23": -110.0
  },
- "overall_bias_mw": -296.6,
- "note": "tahminden CIKARILIR (err = pred - actual; negatifse tahmin dusuk)"
+ "overall_bias_mw": -326.9,
+ "holdout": {
+  "raw_mape": 1.802,
+  "corrected_mape": 1.757,
+  "gain_pp": -0.045
+ },
+ "note": "tahminden CIKARILIR (err = pred - actual; negatifse tahmin dusuk). holdout: tablo verinin ilk %75'inden fit, son %25'inde olculdu = GERCEK dis-ornek kazanc. Ilan edilen kazanc bu degeri kullanmali."
 }
