@@ -147,8 +147,39 @@ def _blended(idx: pd.DatetimeIndex, d1: str, d2: str,
         wv = np.array([wb.get(str(int(x)), w) if pd.notna(x) else w for x in bb])
     else:
         wv = np.full(len(idx), w)
-    out = wv * pd.concat([p1, p2]).reindex(idx).values + (1 - wv) * r.values
+    # --- RUZGAR DEFTERI: bant bazli karisim analizi icin uretim tahminleri ---
+    # Segment analizi (2026-03..11) dusuk ruzgarda RITM'in bizi gectigini gosterdi
+    # (0-1000 MW: +10.4 pp, 1000-3000: +7.1 pp; >9000'de biz ondeyiz).
+    # Mevcut ayar o bantlarda bile modele %95-100 agirlik veriyor. Dogru agirligi
+    # secmek icin URETIM tahminleri birikmeli; bu defter onu saglar.
+    model_raw = pd.concat([p1, p2]).reindex(idx).values
+    out = wv * model_raw + (1 - wv) * r.values
+    _log_wind(idx, model_raw, r.values, wv)
     return pd.Series(out, index=idx), "blend"
+
+
+def _log_wind(idx, model_raw, ritm_raw, wv) -> None:
+    """Uretim ruzgar tahminlerini deftere ekle (gerceklesme sonradan join edilir)."""
+    try:
+        path = os.path.join(os.path.dirname(_SHAPE_PATH), "..", "results", "wind_history.csv")
+        path = os.path.normpath(path)
+        df = pd.DataFrame({
+            "dt": pd.DatetimeIndex(idx),
+            "model_mw": np.asarray(model_raw, dtype=float),
+            "ritm_mw": np.asarray(ritm_raw, dtype=float),
+            "w": np.asarray(wv, dtype=float),
+        })
+        df = df.dropna(subset=["model_mw"])
+        if df.empty:
+            return
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        if os.path.exists(path):
+            old = pd.read_csv(path)
+            old["dt"] = pd.to_datetime(old["dt"])
+            df = pd.concat([old, df]).drop_duplicates(subset=["dt"], keep="last")
+        df.sort_values("dt").to_csv(path, index=False)
+    except Exception as ex:
+        print(f"[ptf] UYARI: ruzgar defteri yazilamadi ({str(ex)[:60]})")
 
 
 def build(master_df: pd.DataFrame, rad: pd.Series, decision: pd.Timestamp,
