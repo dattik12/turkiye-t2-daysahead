@@ -18,6 +18,8 @@ rem Skor tahtasi: tahmin basariliysa defteri gerceklesen + TEIAS ile guncelle.
 rem Bloklamaz -> RC'yi degistirmez.
 if "%RC%"=="0" (
   "%PY%" -u -m scripts.morning_scoreboard >> "%LOG%" 2>&1
+  rem 48 satirlik PTF kontrati (T+1 + T+2) — sabah modelinden, bloklamaz.
+  "%PY%" -u -m scripts.morning_ptf >> "%LOG%" 2>&1
   rem Sabah urununu GitHub'a tasi (ayri klon uzerinden; bloklamaz).
   call push_morning.bat >> "%LOG%" 2>&1
 )
