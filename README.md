@@ -8,6 +8,10 @@
 
 ## ⚡ Downstream Handoff (Agent & Model Ready)
 
+> **📄 Fiyat (PTF) tarafına devrediyorsan önce şunu oku: [`docs/PTF_HANDOFF.md`](docs/PTF_HANDOFF.md)**
+> — kolon sözleşmesi, güncelleme ritmi, ölçülmüş skorlar ve **bilinen kusurlar** orada.
+> Aşağıdaki bölüm hızlı referanstır; devir dosyası tam sözleşmedir.
+
 Downstream fiyat (PTF) modelleri ve otonom ajanlar için doğrulanmış canlı veri kontratı:
 
 ```python
