@@ -15,8 +15,24 @@ ANINA gore dogru sekilde hesaplar.
 """
 from __future__ import annotations
 from pathlib import Path
+import os
 import numpy as np
 import pandas as pd
+
+
+def _use_exposure() -> bool:
+    """CDH/HDH maruziyet bloklari (L1 deneyi). Env ile acilir: USE_EXPOSURE=1.
+    720 gun A/B: -0.055 pp (tek LGBM). Toplulukla dogrulanana kadar varsayilan KAPALI."""
+    return os.environ.get("USE_EXPOSURE", "0") == "1"
+
+
+def _runlen(s: pd.Series) -> pd.Series:
+    """Ardisik 1'lerin uzunlugu (gun bazli seri)."""
+    out, run = [], 0
+    for v in s.to_numpy():
+        run = run + 1 if v else 0
+        out.append(run)
+    return pd.Series(out, index=s.index)
 
 from . import config as C
 
@@ -112,6 +128,23 @@ def build_features(y: pd.Series, wnat: pd.DataFrame, target_idx: pd.DatetimeInde
             target_idx - pd.Timedelta(hours=1)).to_numpy()
         roll30 = wnat["temperature_2m"].rolling(30 * 24, min_periods=30 * 24).mean().shift(1)
         F["temp_anomaly_30d"] = (t - roll30.reindex(target_idx)).to_numpy()
+
+        # --- CDH/HDH maruziyet bloklari (master dosya plani; L1 deneyi) ---
+        if _use_exposure():
+            T = wnat["temperature_2m"]
+            cdh = (T - 22.0).clip(lower=0)
+            hdh = (16.0 - T).clip(lower=0)
+            F["cdh_22"] = cdh.reindex(target_idx).to_numpy()
+            F["hdh_16"] = hdh.reindex(target_idx).to_numpy()
+            F["cdh_72h_sum"] = cdh.rolling(72, min_periods=36).sum().reindex(target_idx).to_numpy()
+            F["hdh_72h_sum"] = hdh.rolling(72, min_periods=36).sum().reindex(target_idx).to_numpy()
+            F["cdh_14d_hours"] = (cdh > 0).rolling(336, min_periods=168).sum().reindex(target_idx).to_numpy()
+            F["hdh_14d_hours"] = (hdh > 0).rolling(336, min_periods=168).sum().reindex(target_idx).to_numpy()
+            dc = (cdh > 0).astype(int).groupby(cdh.index.normalize()).max()
+            dh = (hdh > 0).astype(int).groupby(hdh.index.normalize()).max()
+            dday = pd.DatetimeIndex(pd.DatetimeIndex(target_idx).normalize())
+            F["consecutive_cdh_days"] = _runlen(dc).reindex(dday).to_numpy()
+            F["consecutive_hdh_days"] = _runlen(dh).reindex(dday).to_numpy()
     return F
 
 
