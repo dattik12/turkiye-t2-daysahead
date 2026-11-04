@@ -146,7 +146,30 @@ def run(decision: pd.Timestamp | None = None) -> pd.DataFrame:
     # 28 Ekim yarim-gun carpani (deterministik takvim olayi; bkz. features.halfday_factor)
     from src import features as _F
     p = p * _F.halfday_factor(tgt)
+
+    # --- SAAT BAZLI BIAS DUZELTMESI (720 gun walk-forward: -0.093 pp) ---
+    # Uc uzman da 24 saatin hepsinde eksik tahmin ediyor (ort -297 MW, aksak zirvesi
+    # -484 MW). Tablo data/calibration/load_hour_bias.json'da; scripts/build_bias_table
+    # ile uretilir. BACKTEST KOSULLARINDAN gelir (analiz havasi) -> canlida hafif farkli
+    # olabilir; bu yuzden deftere HEM ham HEM duzeltilmis yazilir, canli skorla kiyaslanir.
+    p_raw = p.copy()
+    _bias_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                              "data", "calibration", "load_hour_bias.json")
+    if os.environ.get("LOAD_BIAS_FIX", "1") == "1" and os.path.exists(_bias_path):
+        try:
+            import json as _json
+            with open(_bias_path, encoding="utf-8") as _fh:
+                _tbl = _json.load(_fh)["bias_mw_by_hour"]
+            _corr = pd.Series([_tbl.get(str(h), 0.0) for h in tgt.hour], index=tgt, dtype=float)
+            p = p - _corr
+            print(f"[morning] bias duzeltmesi: ort {_corr.mean():+.0f} MW "
+                  f"(ham ort {p_raw.mean():,.0f} -> {p.mean():,.0f})")
+        except Exception as ex:
+            print(f"[morning] UYARI: bias tablosu okunamadi ({str(ex)[:60]}) — ham tahmin")
+    else:
+        print("[morning] bias duzeltmesi KAPALI")
     out = pd.DataFrame({"datetime": tgt, "pred_mw": p.values})
+    out["pred_raw_mw"] = p_raw.values          # bias duzeltmesi oncesi (canli kiyas icin)
     out["actual_mw"] = y.reindex(tgt).values
 
     # --- 4) yazim ---
@@ -165,7 +188,7 @@ def run(decision: pd.Timestamp | None = None) -> pd.DataFrame:
     # iki farkli anlam yazinca PTF builder 48 satir beklerken 24 buluyordu.
     from src import scoring as S
     mpath = os.path.join(C.RESULTS_DIR, "morning_history.csv")
-    new = out[["datetime", "pred_mw"]].copy()
+    new = out[["datetime", "pred_mw", "pred_raw_mw"]].copy()
     new = new.rename(columns={"datetime": "dt", "pred_mw": "pred_mw"})
     new["decision_date"] = decision.date().isoformat()
     new["target_date"] = target.date().isoformat()
