@@ -17,7 +17,12 @@ LEAD = r"C:\projeler\lead_weather"
 POP = {"istanbul": 15.9, "ankara": 5.8, "izmir": 4.5, "bursa": 3.2, "antalya": 2.7,
        "adana": 2.3, "konya": 2.3, "gaziantep": 2.1, "kayseri": 1.4, "trabzon": 0.8}
 LAT, LON = 39.0, 35.0
-TRAIN_D, STEP_D = 365, 7   # 90 -> 365: 2.6 yillik GHI var, 90 gun eziyordu
+import os as _os
+TRAIN_D = int(_os.environ.get("TRAIN_D", "540"))   # tarama: 365=15.81 540=15.44 730=15.44/nMAE114
+STEP_D = int(_os.environ.get("STEP_D", "7"))
+NLEAVES = int(_os.environ.get("NLEAVES", "15"))
+TAG = _os.environ.get("TAG", "")
+print(f"AYAR: TRAIN_D={TRAIN_D} STEP_D={STEP_D} NLEAVES={NLEAVES}")
 
 
 # ---------- gunes geometrisi ----------
@@ -199,7 +204,7 @@ def main():
         mte = (X.index >= d) & (X.index < d + pd.Timedelta(days=STEP_D))
         if mtr.sum() < 1500 or mte.sum() < 100:
             d += pd.Timedelta(days=STEP_D); continue
-        m = lgb.LGBMRegressor(n_estimators=2000, learning_rate=0.03, num_leaves=15,
+        m = lgb.LGBMRegressor(n_estimators=2000, learning_rate=0.03, num_leaves=NLEAVES,
                               max_depth=5, min_child_samples=50, subsample=0.85,
                               colsample_bytree=0.85, reg_alpha=0.5, reg_lambda=1.0,
                               random_state=42, verbose=-1)
