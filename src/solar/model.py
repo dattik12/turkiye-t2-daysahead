@@ -5,6 +5,9 @@ import pandas as pd
 
 TEMP_COEFF = -0.004   # kristal-Si guc sicaklik katsayisi (literatur ortalamasi)
 NOCT_K = 0.03         # hucre sicakligi yaklasimi: Tcell = Tamb + NOCT_K * GHI
+# AC/inverter tavan: DC/AC orani ~1.2-1.3 -> AC cikis kurulu gucun ~%85'inde doyar.
+# Gerekce: yillik CF %18.24 (gercek %17-19, seviye DOGRU) ama aylik tepe %90 (fizik disi).
+SOLAR_AC_CLIP = 0.85
 
 
 def cell_temp(amb_c: pd.Series, ghi: pd.Series) -> pd.Series:
@@ -41,6 +44,12 @@ def solar_from_radiation(rad_wm2: pd.Series, capacity_mw: float, pr: float = 0.8
     out = rad_wm2.clip(lower=0) / 1000.0 * float(capacity_mw) * float(pr)
     if temp_c is not None:
         out = out * derate_factor(temp_c.reindex(out.index).ffill().fillna(20.0), rad_wm2)
+    # --- AC KIRPMA (inverter siniri) ---
+    # Olculdu: model yillik kapasite faktoru %18.24 (Turkiye PV gercegi %17-19) -> SEVIYE DOGRU.
+    # Ama aylik tepeler fizik disi: Haziran %90, Mayis %87.6, Temmuz %88.4 (kurulu gucun).
+    # Gercek santralde DC/AC orani ~1.2-1.3 -> AC cikis DC kapasitesinin ~%78-85'inde doyar.
+    # Bu yuzden 0.85 x kapasite tavan uygulanir. Yillik enerji etkisi kucuk (<%1).
+    out = out.clip(upper=SOLAR_AC_CLIP * float(capacity_mw))
     out.name = "solar_pred_mw"
     return out
 
