@@ -1,4 +1,4 @@
-# Sistem Durumu — 2026-11-03 gecesi
+# Sistem Durumu — 2026-11-04
 
 Üç eksen: **yük**, **rüzgar**, **güneş**. Amaç: GÖP fiyat tahminine giren
 feature'ların en iyi halde olması.
@@ -11,12 +11,25 @@ feature'ların en iyi halde olması.
 
 | Bileşen | Durum |
 |---|---|
-| Model | 3 uzman topluluk: LightGBM %15, CatBoost %25, sinir ağı %60 |
+| Model | 3 uzman topluluk: LightGBM %10, CatBoost %20, sinir ağı %70 |
+| Eğitim | son **2000 gün** (pencere taraması: tepe 2000; 4500 gün felaket) |
+| Sinir ağı | **3 seed** [7,17,27] ortalaması (varyans azaltma, 5 seed doyum) |
 | Feature | 83 = 52 temel + 31 saatlik takvim |
-| Backtest | 720 gün walk-forward: **%1.6308** |
-| TEİAŞ | aynı pencerede %2.8581 |
-| Kazanma | 719 günün 570'i (%79) |
-| Canlı beklenti | ~%1.80 (hava lead düzeltmesiyle, ölçüldü) |
+| Backtest | 720 gün walk-forward: **%1.5851** |
+| TEİAŞ | aynı pencerede %2.8550 |
+| Canlı beklenti | **~%1.63** (hava lead cezası +0.041, ölçüldü) |
+
+**Canlı ile backtest birebir aynı mı?** Model, feature, ağırlık, pencere ve lag kuralı
+aynı; iki fark var ve ikisi de bilinçli:
+
+| | Backtest | Canlı |
+|---|---|---|
+| Yeniden eğitim | 30 günde bir | **her gün** (taze veri) |
+| Hava | analiz (historical-forecast) | **IFS tahmini** (lead'li) |
+
+Hava farkının maliyeti ölçüldü: **+0.041 pp** (720 gün, 4 kollu deney).
+Eğitim sıklığı farkı ölçülmedi — canlı her gün daha taze veriyle eğitiyor, backtest
+30 günde bir. Yönü bilinmiyor; 720 günlük sayı 30 günlük kadans varsayımıyla geçerli.
 
 Sinir ağını çalıştıran şey: profil taban (hafta günü × saat, son 12 hafta) +
 residual head + hour/dow/month embedding. Düz MLP %3.63 idi, bu yapıyla %1.71.
@@ -92,10 +105,31 @@ değiştirmek seviyeyi de kaydırır; seviye kalibrasyonu için ulusal GES gerç
    (TEİAŞ/EPDK yıllık üretim) ile seviye kalibrasyonu. Yoksa güneş ölçülemez.
 2. **Günlük hattı topluluğa çevirmek** — `requirements.txt`'e catboost eklenmeli,
    CI'da doğrulanmalı. Şu an günlük hat LightGBM-only.
-3. **Canlı kanıt** — sabah topluluğu ilk kez 2026-11-04 09:00'da gerçek üretimde
-   koşacak; 3-5 gün skor birikmeli. `scripts/morning_scoreboard.py` otomatik dolduruyor.
-4. **Tatil açığı** — tatil MAPE 4.66 vs normal 1.49 (hâlâ 3 kat).
-5. **Köprü günü** (30 Ekim tipi) — çözüm yok.
+3. **Canlı kanıt** — model 2026-11-03'ten beri canlıda; skor defterinde henüz
+   puanlanmış gün yok (gerçekleşmeler hedef gün tamamlanınca doluyor).
+4. **Eğitim sıklığı farkı** — canlı her gün, backtest 30 günde bir yeniden eğitiyor.
+   Yönü ölçülmedi; 720 günlük skor 30 günlük kadansa ait.
+
+---
+
+## Kapanan kollar (2026-11, ~80 hipotez)
+
+Aşağıdakiler ölçüldü ve **hiçbiri kazanmadı** — tekrar denemeye gerek yok.
+Detay: `autoloop/ledger_*.jsonl`, scriptler `scripts/autoloop_*.py` + yardımcılar.
+
+| Kol | Ne denendi | Sonuç |
+|---|---|---|
+| Tatil | 7 örnek ağırlık şeması (×2…×5, komşuluk, köprü, çıkarma) | Nötr/negatif; hata yapısal (yılda ~10 gün) |
+| Hava | lead-1 ile eğitim, sıcaklık bias düzeltmesi | Açık sadece 0.041 pp; düzeltme zarar veriyor |
+| Ağırlıklar | 6 rejim şeması (mevsim/ay/hafta sonu/tatil) | Sabit ağırlık optimal |
+| TSFM | Chronos-2 (720 gün, aynı günler) | En iyi karışım ağırlığı **0** |
+| Amaç fonksiyonu | L1, Huber, 1/y ve 1/√y ağırlığı | L2 optimal |
+| TEİAŞ planı | 4. uzman, walk-forward karışım | −0.005…−0.007 (eşik altı, gürültü) |
+| Model ailesi | XGBoost, büyük MLP, 6-uzman MoE, Ridge | Hepsi gerileme |
+| Rüzgar | 13 hipotez (pencere, seed, ağaç, monotoni) | 90 gün zaten optimal |
+
+**Özü:** kazanç model karmaşıklığından değil, **daha çok geçmiş + varyans azaltmadan**
+geliyor. 2000 gün + 3-seed MLP bu turun tek gerçek kazancı (−0.043 pp, 720 gün).
 
 ---
 
