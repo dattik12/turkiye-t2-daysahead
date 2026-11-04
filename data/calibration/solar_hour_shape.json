@@ -1,0 +1,26 @@
+{
+ "kind": "solar_hour_shape",
+ "source": "rt-gen sun (lisansli GES)",
+ "window": [
+  "2026-08-04",
+  "2026-11-01"
+ ],
+ "shape_hour": {
+  "7": 1.5767,
+  "8": 1.5069,
+  "9": 1.2118,
+  "10": 1.0314,
+  "11": 0.9235,
+  "12": 0.8587,
+  "13": 0.87,
+  "14": 0.9033,
+  "15": 0.9614,
+  "16": 1.0749,
+  "17": 1.0027,
+  "18": 0.7098
+ },
+ "pr_implied": null,
+ "ratio_median": 5657.9,
+ "n": 794,
+ "note": "shape_hour: 24 saatlik oran duzeltmesi (1.0 = degisiklik yok), gun toplami korunur. pr_implied yalnizca capacity_mw verildiginde ve LISANSLI filo icin gecerlidir; ulusal seviye dogrulanamaz (gerceklesme kapsami ~%15)."
+}

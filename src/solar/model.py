@@ -45,9 +45,51 @@ def solar_from_radiation(rad_wm2: pd.Series, capacity_mw: float, pr: float = 0.8
     return out
 
 
-def fit_scale(rad_history: pd.Series, solar_actual_mw: pd.Series) -> dict:
-    """Backfill asamasinda kalibre edilecek (su an iskelet)."""
-    raise NotImplementedError(
-        "fit_scale backfill asamasinda implemente edilecek: "
-        "tarihce radyasyon x GES gerceklesmesiyle PR/scale fit edilecek."
+def fit_scale(rad_history: pd.Series, solar_actual_mw: pd.Series,
+              capacity_mw: float | None = None,
+              min_ghi: float = 200.0) -> dict:
+    """Radyasyon -> MW kalibrasyonu. fit_scale() ARTIK BOS DEGIL.
+
+    Iki sey fit edilir:
+      1) shape_hour : 24 saatlik ORAN duzeltmesi (gercek/tahmin, gun toplami korunur)
+      2) pr_implied : lisansli filo icin zorunlu PR (kapasite bilinirse)
+
+    NEDEN SEKIL: olculdu ki model ogleni fazla, sabah/aksami az uretiyor
+    (oran 06:00'da 0.41, 12:00'de 0.21). Sebep tek-nokta GHI egrisinin sivri olmasi;
+    gercek filo cografi yayili oldugu icin yayvan.
+
+    NEDEN SEVIYE FIT EDILEMIYOR: elimizdeki gerceklesme yalnizca lisansli santraller
+    (kurulu gucun ~%15'i) ve lisansli kapasite bilinmiyor. Bu yuzden national PR
+    dogrulanamaz; pr_implied yalnizca capacity_mw verilirse hesaplanir ve
+    "lisansli filo icin" etiketiyle dondurulur.
+
+    Donus: dict(shape_hour, pr_implied, ratio_median, n, note)
+    """
+    j = pd.concat({"a": solar_actual_mw, "g": rad_history}, axis=1).dropna()
+    j = j[j["g"] > min_ghi]
+    if len(j) < 200:
+        raise ValueError(f"fit_scale: yetersiz eslesme ({len(j)} saat, min 200)")
+
+    pred = j["g"] / 1000.0 * 1.0          # birim kapasite, PR=1 -> MW/MW
+    ratio = (j["a"] / pred).replace([np.inf, -np.inf], np.nan).dropna()
+    by_h = ratio.groupby(ratio.index.hour).median()
+    daily = float(ratio.median())
+
+    shape = {}
+    for h in range(24):
+        if h in by_h.index and np.isfinite(by_h[h]) and daily > 0:
+            shape[h] = round(float(by_h[h] / daily), 4)
+
+    pr_implied = None
+    if capacity_mw and capacity_mw > 0:
+        pr_implied = round(float(j["a"].sum() / (j["g"].sum() / 1000.0 * capacity_mw)), 4)
+
+    return dict(
+        shape_hour=shape,
+        pr_implied=pr_implied,
+        ratio_median=round(daily, 1),
+        n=int(len(j)),
+        note=("shape_hour: 24 saatlik oran duzeltmesi (1.0 = degisiklik yok), gun toplami korunur. "
+              "pr_implied yalnizca capacity_mw verildiginde ve LISANSLI filo icin gecerlidir; "
+              "ulusal seviye dogrulanamaz (gerceklesme kapsami ~%15)."),
     )

@@ -35,6 +35,9 @@ from ..wind.weights import load_matrix, load_spatial_matrix, weighted_speed
 
 TZ = "Europe/Istanbul"
 PEAK_START, PEAK_END = 8, 20  # 08:00 <= saat < 20:00
+# GES sekil tablosu (scripts/build_solar_cal.py uretir)
+_SHAPE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "data", "calibration", "solar_hour_shape.json")
 
 COLS = ["datetime", "horizon", "consumption_pred_mw", "solar_pred_mw",
         "wind_pred_mw", "residual_load_mw", "renewable_generation_mw",
@@ -169,9 +172,34 @@ def build(master_df: pd.DataFrame, rad: pd.Series, decision: pd.Timestamp,
                                     index=fc.index)
         else:
             temp_aligned = None
-        fc["solar_pred_mw"] = SM.solar_from_radiation(
+        _sol = SM.solar_from_radiation(
             pd.Series(fc["sw_rad_tmp"].values, index=fc.index),
-            capacity_mw, pr, temp_c=temp_aligned).astype("float32").values
+            capacity_mw, pr, temp_c=temp_aligned)
+        # --- GES SEKIL DUZELTMESI (VARSAYILAN KAPALI) ---
+        # Olculdu: lisansli GES'e gore model 07:00'de %58 az, 12:00'de %14 fazla.
+        # ANCAK tablo DOGUDAN fit edildi (Erzurum 41D vs Istanbul 29D = 48 dk fark).
+        # Dogu filo saat olarak ERKEN tepe yapar; bu kaymayi ulusal egriye uygulamak
+        # olmayan bir hatayi "duzeltir" ve tepe saatini yanlislikla one ceker
+        # (denendi: ulusal tepe 12:00 -> 11:00 kaydi). Bu yuzden KAPALI.
+        # Dogru cozum: once cografi ofseti ayir (bati/ozel agirlik), sonra sekil fit et.
+        if os.environ.get("SOLAR_SHAPE_FIX", "0") == "1":
+            try:
+                _p = _SHAPE_PATH
+                if os.path.exists(_p):
+                    import json as _json
+                    with open(_p, encoding="utf-8") as _fh:
+                        _sh = _json.load(_fh)["shape_hour"]
+                    _mult = pd.Series([_sh.get(str(h), 1.0) for h in pd.to_datetime(fc["datetime"]).dt.hour],
+                                      index=fc.index, dtype=float)
+                    _day = pd.to_datetime(fc["datetime"]).dt.normalize()
+                    _daily_ratio = (_sol / _mult).groupby(_day).transform("sum")
+                    _sol = _sol * _mult
+                    # gun toplamini geri getir (sekil tasimasi, seviye degil)
+                    _after = _sol.groupby(_day).transform("sum")
+                    _sol = _sol * (_daily_ratio / _after.replace(0, np.nan)).fillna(1.0)
+            except Exception as _ex:
+                print(f"[ptf] UYARI: gunes sekil tablosu okunamadi ({str(_ex)[:60]})")
+        fc["solar_pred_mw"] = _sol.clip(lower=0).astype("float32").values
         fc["solar_status"] = "ok"
     else:
         fc["solar_pred_mw"] = np.nan
