@@ -251,8 +251,23 @@ ROUND4 = [
          params=dict(mlp=dict(seeds=[7, 17, 27]))),
 ]
 
+# Round 5: agirlik analizi icin uzman tahminlerini disari aktar (tek gecis).
+ROUND5 = [
+    dict(id="EXPORT", hyp="Uretim yapisi (2000g, 3-seed, .10/.20/.70) — uzmanlar kaydedilir",
+         experts=["lgbm", "cat", "mlp"], w=[.10, .20, .70], train_days=2000,
+         params=dict(mlp=dict(seeds=[7, 17, 27])), dump=True),
+]
+
+# Round 6: yeniden egitim sikligi — canli GUNLUK, backtest 30 gunde bir.
+# Tek LGBM (hizli) ile yon testi; ayni protokol, tek fark kadans.
+ROUND6 = [
+    dict(id="RETRAIN_TEST", hyp="Kadans testi: ayni model, sadece yeniden egitim sikligi",
+         experts=["lgbm"], w=[1.0], train_days=2000),
+]
+
 VARIANTS = (ROUND2 if ROUND == "2" else ROUND3 if ROUND == "3"
-            else ROUND4 if ROUND == "4" else ROUND1)
+            else ROUND4 if ROUND == "4" else ROUND5 if ROUND == "5"
+            else ROUND6 if ROUND == "6" else ROUND1)
 
 # ---------------- kosu ----------------
 def run_variant(V):
@@ -284,20 +299,38 @@ def run_variant(V):
         Xp = add_roll(Xp, y, V.get("rolls", []))
         wsum = sum(V["w"])
         agg = np.zeros(len(tgt))
+        per = {}
         for nm, w in zip(V["experts"], V["w"]):
-            agg += w / wsum * pred(nm, models_[nm], Xp, tgt)
-        agg = np.clip(agg, 1e3, None) * F.halfday_factor(tgt)
+            pv = pred(nm, models_[nm], Xp, tgt)
+            per[nm] = pv
+            agg += w / wsum * pv
+        hf = F.halfday_factor(tgt)
+        agg = np.clip(agg, 1e3, None) * hf
         a = y.reindex(tgt)
         ok = a.notna() & (a > 0)
         if ok.sum() < 20:
             continue
+        if V.get("dump"):
+            rows_probe = V.setdefault("_dump_rows", [])
+            for i in np.where(ok)[0]:
+                row = {"dt": tgt[i], "y": float(a.iloc[i])}
+                for nm in per:
+                    row[nm] = float(max(per[nm][i], 1e3) * hf[i])
+                rows_probe.append(row)
         rows.append({"day": day.date(),
                      "mape": float(np.mean(np.abs(agg[ok] - a[ok]) / a[ok]) * 100),
                      "bias": float(np.mean(agg[ok] - a[ok]))})
     d = pd.DataFrame(rows)
     d = d[pd.to_datetime(d["day"]) >= EVAL_START]
-    return dict(mape=float(d.mape.mean()), bias=float(d.bias.mean()), n=int(len(d)),
-                secs=round(time.time() - t0, 1))
+    out = dict(mape=float(d.mape.mean()), bias=float(d.bias.mean()), n=int(len(d)),
+               secs=round(time.time() - t0, 1))
+    if V.get("dump"):
+        # Uzman bazli tahminleri kaydet: agirlik semalari sonradan YENIDEN EGITIM
+        # OLMADAN test edilebilsin.
+        P = pd.DataFrame(V["_dump_rows"])
+        P.to_parquet(os.path.join(OUT, "expert_preds.parquet"))
+        out["dump"] = len(P)
+    return out
 
 
 print(f"[loop] {len(VARIANTS)} varyant", flush=True)

@@ -28,8 +28,12 @@ aynı; iki fark var ve ikisi de bilinçli:
 | Hava | analiz (historical-forecast) | **IFS tahmini** (lead'li) |
 
 Hava farkının maliyeti ölçüldü: **+0.041 pp** (720 gün, 4 kollu deney).
-Eğitim sıklığı farkı ölçülmedi — canlı her gün daha taze veriyle eğitiyor, backtest
-30 günde bir. Yönü bilinmiyor; 720 günlük sayı 30 günlük kadans varsayımıyla geçerli.
+
+Eğitim sıklığı **canlının lehine**: aynı model, 180 gün, tek LGBM —
+30 günde bir **%1.8687** vs günlük **%1.7279** (**−0.141 pp**).
+Yani 720 gündeki %1.5851 (30 günlük kadans) canlıyı **olduğundan kötü** gösteriyor;
+gerçek canlı beklenti hava cezası (+0.041) ve kadans kazancı (−0.141) netleşince
+**%1.5851 civarı veya altı**. Tam sayı için toplulukla kadans testi koşulmalı.
 
 Sinir ağını çalıştıran şey: profil taban (hafta günü × saat, son 12 hafta) +
 residual head + hour/dow/month embedding. Düz MLP %3.63 idi, bu yapıyla %1.71.
@@ -107,8 +111,8 @@ değiştirmek seviyeyi de kaydırır; seviye kalibrasyonu için ulusal GES gerç
    CI'da doğrulanmalı. Şu an günlük hat LightGBM-only.
 3. **Canlı kanıt** — model 2026-11-03'ten beri canlıda; skor defterinde henüz
    puanlanmış gün yok (gerçekleşmeler hedef gün tamamlanınca doluyor).
-4. **Eğitim sıklığı farkı** — canlı her gün, backtest 30 günde bir yeniden eğitiyor.
-   Yönü ölçülmedi; 720 günlük skor 30 günlük kadansa ait.
+4. **Kadans testi (toplulukla)** — tek LGBM ile günlük eğitim −0.141 pp kazandı;
+   aynı test toplulukla koşulup canlı skorun tam sayısı çıkarılmalı.
 
 ---
 
