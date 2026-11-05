@@ -168,6 +168,17 @@ for nm, w in POP.items():
             else:
                 pr2 = s if pr2 is None else pr2.add(s, fill_value=0)
 
+# ---------- MULTI-NWP OVERRIDE: nufus-agirlikli tek NWP yerine 3-model ortalama ----------
+# historical-forecast-api saat basina TEK deger verir (lead1/lead2 ayrimi yok),
+# bu yuzden ghi/ghi2 ayni seriden gelir. Kisit PHASE_LOG'da kayitli.
+_full_idx = pd.date_range(ghi.index.min(), ghi.index.max(), freq="h")
+_gm, _gs = mnwp_series("shortwave_radiation", _full_idx)
+_cm, _cs = mnwp_series("cloud_cover", _full_idx)
+ghi = ghi2 = _gm
+cloud = cloud2 = _cm
+NWP_SPREAD_GHI = _gs
+print(f"multi-NWP ghi: dolu {int(_gm.notna().sum())}/{len(_gm)} | spread ort {float(_gs.mean()):.1f} W/m2")
+
 # ---------- kapasite zarfi (causal) ----------
 # 1 SAATLIK HIZA: EPiAS `sun` damgasi ile Open-Meteo GHI damgasi 1 saat kayik.
 # Olculdu (2021-2026, 2160 saat): corr 0.875 -> 0.957, WMAPE 42.4 -> 26.6.
@@ -238,6 +249,7 @@ def build(decision):
         r["rh"] = rhv
         r["precip"] = prv
         r["is_rain"] = 1.0 if (prv == prv and prv > 0.1) else (0.0 if prv == prv else np.nan)
+        r["nwp_spread_ghi"] = float(NWP_SPREAD_GHI.get(t, np.nan)) if NWP_SPREAD_GHI is not None else np.nan
         r["C_cut"] = Cc
         rows.append((t, r))
     X = pd.DataFrame([r for _, r in rows], index=[t for t, _ in rows])
@@ -269,7 +281,9 @@ def main():
     days = pd.DatetimeIndex(sorted(set(X.index.normalize())))
     ev = days.min() + pd.Timedelta(days=TRAIN_D)
     res = {1: [], 2: []}
-    d = ev.normalize()
+    EVAL_START = pd.Timestamp(os.environ.get("EVAL_START", "2000-01-01"))
+    print(f"degerlendirme baslangici: {EVAL_START.date()}")
+    d = max(ev.normalize(), EVAL_START)
     while d <= days.max():
         mtr = (X.index < d) & (X.index >= d - pd.Timedelta(days=TRAIN_D))
         mte = (X.index >= d) & (X.index < d + pd.Timedelta(days=STEP_D))
@@ -292,7 +306,8 @@ def main():
             s = H[mte] == hz
             if s.sum() > 20:
                 res[hz].append(pd.DataFrame({"p": mw[s], "a": sun.reindex(X.index[mte][s]).to_numpy(),
-                                             "el": el[s]}))
+                                             "el": el[s],
+                                             "dt": X.index[mte][s]}))
         d += pd.Timedelta(days=STEP_D)
 
     print("\n=== GUNES (cf-normalize, cutoff-safe) ===")
@@ -305,6 +320,14 @@ def main():
         print(f"  T+{hz}: tum WAPE {wape(D.p.to_numpy(), D.a.to_numpy()):5.2f}% | "
               f"gunduz WAPE {wape(day.p.to_numpy(), day.a.to_numpy()):5.2f}% | "
               f"nMAE {float((D.p-D.a).abs().mean()):.0f} MW | bias {float((D.p-D.a).mean()):+.0f} | n={len(D)}")
+        # --- SAGLAMLIK KAPISI: pencereyi ikiye bol ---
+        if "dt" in D.columns:
+            ts = pd.to_datetime(D["dt"])
+            mid = ts.min() + (ts.max() - ts.min()) / 2
+            for nm, sub in (("1. yari", D[ts <= mid]), ("2. yari", D[ts > mid])):
+                sd = sub[sub.el > 0]
+                if len(sd) > 500:
+                    print(f"      {nm} gunduz WAPE {wape(sd.p.to_numpy(), sd.a.to_numpy()):5.2f}% | n={len(sd)}")
     print("\n  KARSILASTIRMA: fizik formulu baseline %26.6 tum gun / 42.4 gunduz")
 
 

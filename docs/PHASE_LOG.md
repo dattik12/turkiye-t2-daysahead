@@ -60,11 +60,30 @@ O gün `w ∈ {0.40…0.80}` adım 0.05 taranır; sağlamlık kapısı: iki yar�
 **Karar: iptal.** 2021'de hiçbir model yok; 2022'de yalnız GFS var. "Multi-NWP"
 tanımına uymuyor. Eğitime koşulmadı (kurulu güç ~yarısı, dağılım kayar).
 
-### 3. Güneş multi-NWP backtest — BEKLEMEDE
+### 3. Güneş multi-NWP — KAPI GEÇMEDİ, TERFİ YOK
 
-Arşiv hazır (128 dosya). İskelet `scripts/solar_mnwp.py`. Terfi kapısı:
-**≥1 puan iyileşme VE iki yarı pencerede sağlam** → kontrata bağla; yoksa
-`ml_v4_ges` kalır (gündüz %13,01).
+**Karar: `ml_v4_ges` KALIYOR.** Kanıt:
+
+| Model | Tüm dönem | Tam kapsam (2025+) |
+|---|---|---|
+| ml_v4_ges (tek NWP, GES ağırlıklı) | %13,01 | **%11,39** |
+| multi-NWP (IFS+GFS+ICON) | %11,49 | **%10,69** |
+| **Fark (AYNI pencere)** | — | **−0,70 puan** |
+
+Yarımlar (tam kapsam, gündüz):
+- ml_v4_ges: 10,60 / 12,07
+- multi-NWP: 10,19 / 11,13
+
+Kapı **≥1 puan** istiyordu; gerçek kazanç **−0,70**. Terfi edilmedi.
+
+**DERS (kritik):** İlk ölçümde "−1,52 puan" görünmüştü çünkü ml_v4_ges'in *tüm dönem*
+skoru (%13,01) multi-NWP'nin *tam kapsam* skoru (%11,49) ile kıyaslanmıştı.
+Kapının "aynı pencere" şartı tam bu tuzağı önledi. Kıyas her zaman aynı pencerede.
+
+**Neden güneşte kazanç küçük, rüzgarda büyük:** Güneş zaten GES-ağırlıklı GHI +
+bulut + clear-sky indeksi kullanıyor; tek NWP bu iş için yeterince iyi. Rüzgar ise
+100m hızda model hatasına çok daha duyarlı — çoklu model spread'i orada gerçek bilgi
+taşıyor (rüzgar temiz dönem: 17,78 → 14,67 = −3,11).
 
 ---
 
