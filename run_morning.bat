@@ -20,6 +20,8 @@ if "%RC%"=="0" (
   "%PY%" -u -m scripts.morning_scoreboard >> "%LOG%" 2>&1
   rem 48 satirlik PTF kontrati (T+1 + T+2) — sabah modelinden, bloklamaz.
   "%PY%" -u -m scripts.morning_ptf >> "%LOG%" 2>&1
+  rem Gunluk kontrat arsivi + feature surum damgasi (PTF ablation izi; bloklamaz).
+  "%PY%" -u -m scripts.archive_contract >> "%LOG%" 2>&1
   rem Sabah urununu GitHub'a tasi (ayri klon uzerinden; bloklamaz).
   call push_morning.bat >> "%LOG%" 2>&1
 )
