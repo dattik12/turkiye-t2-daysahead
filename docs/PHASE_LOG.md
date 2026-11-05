@@ -15,7 +15,7 @@ Her giriş: tarih, karar, kanıt, geri alma yolu.
 | 100m / 39 il, tek NWP | %17,78 | 814 MW | power curve + 6 bölge |
 | Multi-NWP, karışık dönem | %15,41 | 705 MW | 2023'te 2 model |
 | **Multi-NWP, temiz dönem (2025+)** | **%14,67** | **718 MW** | 3 model tam, n=13.800 |
-| RİTM (referans) | ~%13 | — | |
+| RİTM (referans) | ~%13 | — | **ÖLÇÜLMEDİ** — eski notlardan; 24 Kasım'da aynı pencerede ölçülecek |
 
 ### KARAR: multi-NWP canlıda
 - `scripts/wind_live_v5.py`, `status='ml_v5_multinwp'`
@@ -66,8 +66,8 @@ tanımına uymuyor. Eğitime koşulmadı (kurulu güç ~yarısı, dağılım kay
 
 | Model | Tüm dönem | Tam kapsam (2025+) |
 |---|---|---|
-| ml_v4_ges (tek NWP, GES ağırlıklı) | %13,01 | **%11,39** |
-| multi-NWP (IFS+GFS+ICON) | %11,49 | **%10,69** |
+| ml_v4_ges (tek NWP, GES ağırlıklı) | %13,01 (tüm dönem) | **%11,39** — nMAE 116 MW (tüm gün) |
+| multi-NWP (IFS+GFS+ICON) | %11,49 (tüm dönem) | **%10,69** — nMAE 109 MW (tüm gün) |
 | **Fark (AYNI pencere)** | — | **−0,70 puan** |
 
 Yarımlar (tam kapsam, gündüz):
@@ -123,3 +123,27 @@ süreç listesi. Uzun koşular `python -u`.
 
 ### Doğrulama
 `scripts/verify_contract.py` (17 kapı). Denge 0,003906 MW = 2⁻⁸ = float32 tek ULP.
+
+---
+
+## ZAMANLANMIŞ GÖREV — kapsama kanıtı (2026-11-06 doğrulandı)
+
+```
+TaskName     : \TR_Morning_Yarim_Tahmin
+Schedule Type: Daily          <-- HER GÜN, hafta sonu DAHİL
+DaysInterval : 1
+Next Run     : 6.11.2026 09:00
+Last Run     : 5.11.2026 09:00:01   Last Result: 0 (başarılı)
+```
+
+**Hafta sonu açığı YOK.** Görev günlüktür, Cumartesi/Pazar da koşar.
+
+**DÜZELTME:** Bir raporda "9 Kasım 09:00" yazılmıştı — HATALI. Sıradaki koşu her gün 09:00.
+
+Sabah ürünü arşivi: `yarin_2026-11-03/04/05/06.parquet` (dördü de mevcut).
+
+### Rapor rejimi standardı
+- **Varsayılan: üretim rejimi (2025+)** — 3 NWP modeli tam.
+- Tüm dönem skorları ek bilgi olarak, "tüm dönem" etiketiyle verilir.
+- Her skora **pencere + gündüz/tüm-gün + n** yazılır. Etiketsiz sayı yasak.
+- nMAE tek başına yazılmaz; kapsam (%) ile birlikte.
