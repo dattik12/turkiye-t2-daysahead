@@ -50,9 +50,9 @@ def _quota_ok() -> bool:
     return _QUOTA["ok"]
 
 
-def _guard(fn, label, fallback=None, budget=GUARD_S):
-    """Kota yoksa cagriyi HIC yapma. Varsa normal calistir (ic retry kendi isi)."""
-    if not _quota_ok():
+def _guard(fn, label, fallback=None, budget=GUARD_S, need_om=True):
+    """Kota yoksa cagriyi HIC yapma. need_om=False -> Open-Meteo disi (EPiAS/RITM)."""
+    if need_om and not _quota_ok():
         print(f"[ptf48] {label}: kota yok -> fallback")
         return fallback
     try:
@@ -135,15 +135,37 @@ def main():
         print("[ptf48] UYARI rad yok -> gunes 0 (kontrat yine yazilir)")
     if tmp is None:
         tmp = pd.Series(np.nan, index=idx)
+    # RITM = EPiAS, Open-Meteo kotasindan BAGIMSIZ -> need_om=False
     wind, wstat = _guard(lambda: PS._wind_series(decision, min_cov=24),
-                         "ruzgar", fallback=(None, "kota_yok"))
+                         "ruzgar", fallback=(None, "kota_yok"), need_om=False)
     if wind is None:
         wind = pd.Series(0.0, index=idx)
     for s in (rad, tmp, wind):
         if getattr(s.index, "tz", None) is not None:
             s.index = s.index.tz_localize(None)
-    solar = SM.solar_from_radiation(rad.reindex(idx), C.SOLAR_CAPACITY_MW,
-                                    C.SOLAR_PR, temp_c=tmp.reindex(idx))
+    # GUNES: ML modeli (solar_live.py ciktisi) varsa ONU kullan; yoksa fizik formulu.
+    SOLAR_ML = os.path.join(C.DATA, "forecast", "solar_live.parquet")
+    solar_ml = None
+    if os.path.exists(SOLAR_ML):
+        sm = pd.read_parquet(SOLAR_ML)
+        sm["datetime"] = pd.to_datetime(sm["datetime"])
+        s = pd.Series(sm["solar_mw"].to_numpy(), index=pd.DatetimeIndex(sm["datetime"]))
+        if getattr(s.index, "tz", None) is not None:
+            s.index = s.index.tz_localize(None)
+        solar_ml = s.reindex(idx)
+        if solar_ml.notna().sum() < 40:
+            print(f"[ptf48] UYARI solar_live kapsama {solar_ml.notna().sum()}/48 -> fizik")
+            solar_ml = None
+        else:
+            print(f"[ptf48] gunes: ML v2 (solar_live) tepe {solar_ml.max():,.0f} MW")
+
+    if solar_ml is not None:
+        solar = solar_ml.fillna(0.0)
+        solar_status_val = "ml_v2"
+    else:
+        solar = SM.solar_from_radiation(rad.reindex(idx), C.SOLAR_CAPACITY_MW,
+                                        C.SOLAR_PR, temp_c=tmp.reindex(idx))
+        solar_status_val = "physics" 
     wind = wind.reindex(idx)
 
     df = pd.DataFrame({
@@ -159,7 +181,7 @@ def main():
     df["residual_ramp_1h"] = df.residual_load_mw.diff().fillna(0).astype("float32")
     df["solar_ramp_1h"] = df.solar_pred_mw.diff().fillna(0).astype("float32")
     df["is_peak_hour"] = df.datetime.dt.hour.between(8, 19)
-    df["solar_status"] = np.where(df.solar_pred_mw > 0, "ok", "zero_night")
+    df["solar_status"] = np.where(df.solar_pred_mw > 0, solar_status_val, "zero_night")
     df["wind_status"] = wstat
     cols = ["datetime", "horizon", "consumption_pred_mw", "solar_pred_mw", "wind_pred_mw",
             "residual_load_mw", "renewable_generation_mw", "renewable_penetration",
