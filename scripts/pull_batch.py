@@ -36,14 +36,21 @@ SOLAR = {"konya": (37.87,32.48), "ankara": (39.93,32.86), "sanliurfa": (37.16,38
 WV = "wind_speed_100m,wind_direction_100m,temperature_2m"
 
 
-def quota():
-    try:
-        r = requests.get(URL, params=dict(latitude=39, longitude=35, hourly="temperature_2m",
-                                          start_date="2026-11-04", end_date="2026-11-04"),
-                         timeout=20)
-        return r.status_code == 200
-    except Exception:
-        return False
+def quota(tries=3):
+    """DNS/ag hatasi != kota kapali. 429 disinda tekrar dene."""
+    for k in range(tries):
+        try:
+            r = requests.get(URL, params=dict(latitude=39, longitude=35, hourly="temperature_2m",
+                                              start_date="2026-11-04", end_date="2026-11-04"),
+                             timeout=25)
+            if r.status_code == 200:
+                return True
+            if r.status_code == 429:
+                return False          # gercek kota
+        except Exception as ex:
+            print(f"    kota probe hatasi ({k+1}/{tries}): {str(ex)[:50]}", flush=True)
+        time.sleep(5 * (k + 1))
+    return True                        # emin degilsek DEVAM (yanlis durma pahali)
 
 
 def fetch_batch(names, coords, hourly, s, e, tries=4):
@@ -66,26 +73,38 @@ def fetch_batch(names, coords, hourly, s, e, tries=4):
 
 
 def pull_wind(years):
+    """CEYREKLIK parca: tek istekte 39 il x 1 yil cok agir (timeout)."""
     os.makedirs(OUTW, exist_ok=True)
     names = list(PROV)
     coords = [PROV[n] for n in names]
     for y in years:
-        done = [n for n in names if os.path.exists(os.path.join(OUTW, f"{n}_{y}.parquet"))]
-        if len(done) == len(names):
-            print(f"  {y}: zaten tam ({len(names)} il)", flush=True)
-            continue
-        if not quota():
-            print(f"  {y}: KOTA KAPALI — dur", flush=True); return False
-        s, e = f"{y}-01-01", f"{y}-12-31"
-        print(f"  {y} cekiliyor ({len(names)} il batch)...", flush=True)
-        blocks = fetch_batch(names, coords, WV, s, e)
-        for n, b in zip(names, blocks):
-            d = pd.DataFrame(b["hourly"])
-            d["time"] = pd.to_datetime(d["time"])
-            d = d.set_index("time")
-            d.to_parquet(os.path.join(OUTW, f"{n}_{y}.parquet"))
-        print(f"  {y}: OK ({len(blocks)} il)", flush=True)
-        time.sleep(2)
+        for q, (s, e) in enumerate([(f"{y}-01-01", f"{y}-03-31"),
+                                    (f"{y}-04-01", f"{y}-06-30"),
+                                    (f"{y}-07-01", f"{y}-09-30"),
+                                    (f"{y}-10-01", f"{y}-12-31")], 1):
+            tag = f"{y}Q{q}"
+            done = [n for n in names if os.path.exists(os.path.join(OUTW, f"{n}_{tag}.parquet"))]
+            if len(done) == len(names):
+                print(f"  {tag}: zaten tam", flush=True); continue
+            if not quota():
+                print(f"  {tag}: KOTA KAPALI — dur", flush=True); return False
+            # gelecek tarih YASAK (historical-forecast API 400 verir)
+            today = pd.Timestamp.now().normalize()
+            e_dt = min(pd.Timestamp(e), today - pd.Timedelta(days=1))
+            if pd.Timestamp(s) > e_dt:
+                print(f"  {tag}: gelecek — atlandi", flush=True); continue
+            e = e_dt.strftime("%Y-%m-%d")
+            print(f"  {tag} ({s} -> {e})...", flush=True)
+            try:
+                blocks = fetch_batch(names, coords, WV, s, e)
+            except Exception as ex:
+                print(f"  {tag}: HATA {str(ex)[:80]} — atlandi", flush=True); continue
+            for n, b in zip(names, blocks):
+                d = pd.DataFrame(b["hourly"])
+                d["time"] = pd.to_datetime(d["time"])
+                d.set_index("time").to_parquet(os.path.join(OUTW, f"{n}_{tag}.parquet"))
+            print(f"  {tag}: OK", flush=True)
+            time.sleep(2)
     return True
 
 
