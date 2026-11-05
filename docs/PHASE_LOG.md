@@ -147,3 +147,55 @@ Sabah ürünü arşivi: `yarin_2026-11-03/04/05/06.parquet` (dördü de mevcut).
 - Tüm dönem skorları ek bilgi olarak, "tüm dönem" etiketiyle verilir.
 - Her skora **pencere + gündüz/tüm-gün + n** yazılır. Etiketsiz sayı yasak.
 - nMAE tek başına yazılmaz; kapsam (%) ile birlikte.
+
+---
+
+## FAZ 4 — RÜZGAR HATA YAPISI (2026-11-06)
+
+Protokol: `wind_diag.py`, EVAL_START=2025-01-01, 3 model tam, **WAPE %14,67 birebir
+yeniden üretildi** (protokol doğrulandı). Dump: `C:\projeler\wind_wf_preds.parquet`
+(13.800 saat). Analiz: `wind_errstruct.py` — YENİ EĞİTİM YOK.
+
+### Bulgular (MAE, n=13.800)
+
+| Boyut | Sonuç |
+|---|---|
+| Genel | MAE **718 MW**, bias −31 MW |
+| Gece / gündüz | 691 / 726 → **0,95x** (gündüz hafif kötü) |
+| Saat bias | gece −125…−255 (eksik), öğle +133…+180 (fazla) |
+| **Marmara** yüksek hız | 829 vs düşük 583 → **+246 MW** |
+| **Ege** yüksek hız | 837 vs düşük 584 → **+253 MW** |
+| Akdeniz | 716 vs 720 → **düz** |
+| İç Anadolu | 788 vs 643 → +145 MW |
+| **NWP spread** düşük/orta/yüksek | 623 / 725 / **807** → **1,30x** |
+| Cut-out (>25 m/s) | **sadece 3 saat** (%0,02), MAE 3.591; 3 gün (Şubat 2026) |
+| Büyük rampa (>p90 1.282 MW) | 886 vs 681 → **1,30x** |
+
+### Hüküm
+718 MW'ın kaynağı **yüksek rüzgarlı Marmara + Ege saatleri**. Akdeniz katkı vermiyor.
+Cut-out ihmal edilebilir (3 saat) — "cut-out şüphesi" reddedildi.
+
+### 24 KASIM ÖN KAYDI — w ölçümü
+Aynı pencerede üç seri: RİTM-sadece, ML-sadece, blend w-eğrisi (0,40–0,80, adım 0,05).
+**Ek hipotez (bu tanıdan):** NWP spread yüksekken (üst üçte bir) ML hatası 1,30x
+büyüyor. RİTM'in spread rejimine duyarlılığı farklıysa **rejim-bağımlı w** kazanabilir.
+Rejim kırılımı tablosu ölçüme EKLENİR; karar yine aynı sağlamlık kapısından geçer.
+
+### Yük denetimi — GEÇERSİZ, YENİDEN GEREKLİ
+`load_audit.py` 2025+ tarihler için `D.forecast_weather()` çağırıyordu; bu fonksiyon
+**CANLI API** (`OM_FC_URL`) kullanıyor → geçmiş tarih için yanlış. Ayrıca `nat` tek
+seri, T+1/T+2 lead ayrımı yok (iyimserlik).
+**Doğru yol:** `lead_weather/<il>.parquet` içindeki `_previous_day1` / `_previous_day2`
+serileri — lead ayrımı açık, arşiv tahmini. Yük denetimi bununla yeniden yazılmalı.
+
+### Sistem track record (altın standart)
+`yarin_*.parquet` arşivi + `rt_cons` gerçekleşeni — hava sızıntısı sorusu yok.
+Şu an **2 gün** değerlendirilebilir:
+
+| Dosya | n | WAPE | bias |
+|---|---|---|---|
+| yarin_2026-11-03 | 24 | %10,26 | **−4.059 MW** |
+| yarin_2026-11-04 | 24 | %1,14 | −369 MW |
+
+3 Kasım üretimi arızalı (ort 35.518 vs ertesi gün 39.755) — bu çalışma öncesi koşu.
+**Track record henüz yok**; 30 gün birikince anlamlı.
