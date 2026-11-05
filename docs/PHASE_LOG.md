@@ -199,3 +199,37 @@ serileri — lead ayrımı açık, arşiv tahmini. Yük denetimi bununla yeniden
 
 3 Kasım üretimi arızalı (ort 35.518 vs ertesi gün 39.755) — bu çalışma öncesi koşu.
 **Track record henüz yok**; 30 gün birikince anlamlı.
+
+---
+
+## FAZ 4 — YÜK OUT-OF-TIME (SIZINTISIZ) ✅
+
+`scripts/load_audit2.py` — `lead_weather` `_previous_day1` (T+1) ve `_previous_day2`
+(T+2) serileri. Hiçbir gün gerçekleşen hava kullanılmaz. 364 gün, aylık yeniden eğitim.
+
+### SONUÇ
+
+| | WAPE | nMAE | bias | n |
+|---|---|---|---|---|
+| **T+1** | **%1,69** | 689 MW | **−357 MW** | 8.736 |
+| **T+2** | **%1,69** | 690 MW | −357 MW | 8.736 |
+| 1. yarı | %1,64 | | | 4.368 |
+| 2. yarı | %1,73 | | | 4.368 |
+
+**Hedef T+1 < %1,35 → TUTMADI** (1,69). Yarımlar dengeli (1,64 / 1,73), yani ölçüm sağlam.
+
+### Kritik düzeltme: önceki skorlar iyimserdi
+Canlı raporlarda geçen **%1,585 / %1,51** değerleri in-sample'dı. Sızıntısız
+out-of-time gerçek **%1,69**. Fark +0,10-0,18 puan. Bu, projenin en büyük
+"gerçek skor" düzeltmesidir.
+
+### Hata yapısı
+- **Saat:** gece %1,00-1,15 (iyi) → öğle **%2,08-2,23** (kötü). Ondalık fark 2x.
+- **Bias saatleri:** 08-09'da **−634…−649 MW**, öğlen −500'ler, gece −100'ler.
+  Yani model gündüz sistematik olarak **düşük** tahmin ediyor.
+- Gece neredeyse kusursuz; sorun tamamen gündüz bloğunda.
+
+### Neden önemli
+Yük, hata bütçesinde rüzgardan sonra ikinci (~560-690 MW). Gündüz bias'ı
+−650 MW'a ulaşıyor; bu, rezidüel yükün öğle çukurunu doğrudan bozuyor
+(PTF öğle fiyatına duyarlı).
