@@ -14,8 +14,9 @@ sys.path.insert(0, r"C:\projeler\turkiye-t2-daysahead")
 RAW = r"data\raw\epias_national_rt_gen_2021_2026.parquet"
 LEAD = r"C:\projeler\lead_weather"
 OUT = r"data\forecast\solar_live.parquet"
-POP = {"istanbul": 15.9, "ankara": 5.8, "izmir": 4.5, "bursa": 3.2, "antalya": 2.7,
-       "adana": 2.3, "konya": 2.3, "gaziantep": 2.1, "kayseri": 1.4, "trabzon": 0.8}
+# GES KURULU GUC AGIRLIGI (backtest: nufus %14.43 -> GES %13.01 gunduz WAPE)
+POP = {"konya": 26.0, "ankara": 13.0, "kayseri": 11.0, "antalya": 10.0, "izmir": 8.0,
+       "adana": 7.0, "gaziantep": 7.0, "bursa": 5.0, "istanbul": 3.0, "trabzon": 1.0}
 COORD = {"istanbul": (41.01, 28.98), "ankara": (39.93, 32.86), "izmir": (38.42, 27.14),
          "bursa": (40.19, 29.06), "antalya": (36.90, 30.70), "adana": (37.00, 35.32),
          "konya": (37.87, 32.48), "gaziantep": (37.06, 37.38), "kayseri": (38.73, 35.49),
@@ -157,7 +158,7 @@ def main():
     p = np.where(X["elev"].to_numpy() <= 0, 0.0, p)
 
     out = pd.DataFrame({"datetime": tgt, "solar_mw": np.clip(p, 0, None),
-                        "horizon": ["T+1"] * 24 + ["T+2"] * 24, "status": "ml_v3_ens"})
+                        "horizon": ["T+1"] * 24 + ["T+2"] * 24, "status": "ml_v4_ges"})
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     out.to_parquet(OUT, index=False)
     print(f"YAZILDI {OUT} | T+1 tepe {out.solar_mw[:24].max():,.0f} | T+2 tepe {out.solar_mw[24:].max():,.0f}")

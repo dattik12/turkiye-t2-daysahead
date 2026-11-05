@@ -149,13 +149,21 @@ def main():
         ws = pd.Series(wm["wind_mw"].to_numpy(), index=pd.DatetimeIndex(wm["datetime"]))
         if getattr(ws.index, "tz", None) is not None:
             ws.index = ws.index.tz_localize(None)
-        wm2 = ws.reindex(idx[24:])
-        if wm2.notna().sum() >= 20:
+        wml = ws.reindex(idx)
+        if wml.notna().sum() >= 40:
             w2 = np.array(wind.to_numpy(dtype=float), copy=True)
-            w2[24:] = wm2.to_numpy()
+            # T+1: RITM agirlikli karisim (RITM %13 vs ML %17.7 -> RITM lehine)
+            W_RITM = float(os.environ.get("WIND_W_RITM", "0.70"))
+            m1 = wml.notna().to_numpy()[:24]
+            ritm1 = w2[:24]
+            ml1 = wml.to_numpy()[:24]
+            w2[:24] = np.where(m1 & (ritm1 > 0), W_RITM * ritm1 + (1 - W_RITM) * ml1, ritm1)
+            # T+2: yalniz ML (RITM 24s siniri)
+            w2[24:] = wml.to_numpy()[24:]
             wind = pd.Series(w2, index=idx)
-            wstat = "ritm_t1_ml100m_t2"
-            print(f"[ptf48] ruzgar T+2: ML 100m tepe {np.nanmax(w2[24:]):,.0f} MW")
+            wstat = f"blend{W_RITM:.2f}_t1_ml100m_t2"
+            print(f"[ptf48] ruzgar T+1 karisim ({W_RITM:.2f} RITM) | "
+                  f"T+2 ML tepe {np.nanmax(w2[24:]):,.0f} MW")
         else:
             print("[ptf48] UYARI wind_live kapsama yetersiz -> T+2 iklim")
     for s in (rad, tmp, wind):
@@ -185,6 +193,32 @@ def main():
                                         C.SOLAR_PR, temp_c=tmp.reindex(idx))
         solar_status_val = "physics" 
     wind = wind.reindex(idx)
+
+    # --- RUZGAR EWMA BIAS: wind_history.csv'den son 14 gunun saatlik medyan hatasi ---
+    WH = os.path.join(C.RESULTS_DIR, "wind_history.csv")
+    if os.path.exists(WH):
+        try:
+            h = pd.read_csv(WH)
+            tcol = next((c for c in ("datetime", "target_dt", "ts") if c in h.columns), None)
+            pcol = next((c for c in ("pred_mw", "wind_pred_mw", "pred") if c in h.columns), None)
+            acol = next((c for c in ("actual_mw", "wind_actual_mw", "actual") if c in h.columns), None)
+            if tcol and pcol and acol:
+                h[tcol] = pd.to_datetime(h[tcol], errors="coerce")
+                h = h.dropna(subset=[tcol, pcol, acol])
+                cut14 = decision - pd.Timedelta(days=14)
+                h14 = h[h[tcol] >= cut14]
+                if len(h14) >= 168:
+                    h14 = h14.assign(err=(h14[acol] - h14[pcol]), hr=h14[tcol].dt.hour)
+                    b = h14.groupby("hr")["err"].median().clip(-400, 400)
+                    corr = wind.index.hour.map(b).to_numpy(dtype=float)
+                    corr = np.nan_to_num(corr, nan=0.0)
+                    wind = pd.Series(np.clip(wind.to_numpy() + corr, 0, None), index=idx)
+                    print(f"[ptf48] ruzgar EWMA bias: {len(h14)} saat | "
+                          f"ort {corr.mean():+.0f} MW | |max| {np.abs(corr).max():.0f}")
+                else:
+                    print(f"[ptf48] ruzgar bias: yetersiz gecmis ({len(h14)}<168) -> atlandi")
+        except Exception as ex:
+            print(f"[ptf48] UYARI ruzgar bias: {str(ex)[:60]}")
 
     df = pd.DataFrame({
         "datetime": idx,

@@ -72,6 +72,10 @@ def build_feats(X, idx):
     F["ws_std"] = allv.std(axis=1)
     F["ws_max"] = allv.max(axis=1)
     F["pc_all"] = pc(allv).mean(axis=1)
+    # TURBIN GUC EGRISI RAMPASI (1 ve 2 saatlik fark)
+    F["pc_ramp_1h"] = F["pc_all"].diff(1)
+    F["pc_ramp_2h"] = F["pc_all"].diff(2)
+    F["ws_ramp_1h"] = F["ws_mean"].diff(1)
     F["v3"] = F.ws_mean ** 3
     nh = pd.DatetimeIndex(idx)
     F["hour"] = nh.hour; F["month"] = nh.month
@@ -118,6 +122,18 @@ def main():
     Ftr["cf_lag168"] = cf.shift(168).reindex(tr_idx)
     Ftr["cf_7d"] = sum(cf.shift(24 * k) for k in range(1, 8)).reindex(tr_idx) / 7.0
     ytr = cf.reindex(tr_idx)
+    # CUTOFF SON BILINEN URETIM (D 08:00) + exponential decay
+    last_gen = float(wnd.asof(cut))
+    last_cf = float(cf.asof(cut))
+    def add_decay(F, idx):
+        hrs = np.array([(pd.Timestamp(x) - cut).total_seconds() / 3600.0 for x in idx])
+        F["decay"] = np.exp(-np.clip(hrs, 0, None) / 24.0)
+        F["last_gen_mw"] = last_gen * F["decay"].to_numpy()
+        F["last_cf"] = last_cf * F["decay"].to_numpy()
+        F["hrs_from_cut"] = hrs
+        return F
+    Ftr = add_decay(Ftr, tr_idx)
+    print(f"cutoff son uretim: {last_gen:,.0f} MW (cf {last_cf:.3f})")
     m = ytr.notna() & Ftr[["pc_all"]].notna().all(axis=1)
     mdl = lgb.LGBMRegressor(n_estimators=1200, learning_rate=0.03, num_leaves=15,
                             max_depth=5, min_child_samples=50, subsample=0.85,
@@ -135,7 +151,8 @@ def main():
     Ft["cf_lag48"] = cf.shift(48).reindex(tgt)
     Ft["cf_lag168"] = cf.shift(168).reindex(tgt)
     Ft["cf_7d"] = sum(cf.shift(24 * k) for k in range(1, 8)).reindex(tgt) / 7.0
-    Ft = Ft[mdl.feature_name_]
+    Ft = add_decay(Ft, tgt)
+    Ft = Ft.reindex(columns=mdl.feature_name_)
     p = np.clip(mdl.predict(Ft.fillna(Ft.median())), 0, 1.3) * Cc
 
     out = pd.DataFrame({"datetime": tgt, "wind_mw": np.clip(p, 0, None),
