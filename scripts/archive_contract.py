@@ -31,6 +31,9 @@ def main():
 
     day = d["datetime"].min().date().isoformat()          # hedef gun (T+1)
     dst = os.path.join(ARC, f"ptf_{day}.parquet")
+    if os.path.exists(dst):
+        print(f"SKIP: {day} zaten arsivde (kota gunlerinde cift arsiv olmasin)")
+        return 0
     d.to_parquet(dst, index=False)
 
     cols = [c for c in d.columns if c not in ("datetime",)]
@@ -41,6 +44,7 @@ def main():
     meta = {
         "target_day": day,
         "archived_at": pd.Timestamp.now().isoformat(timespec="seconds"),
+        "source_mtime": pd.Timestamp(os.path.getmtime(SRC), unit="s").isoformat(timespec="seconds"),
         "rows": int(len(d)),
         "cols": int(len(d.columns)),
         "contract_hash": h,
