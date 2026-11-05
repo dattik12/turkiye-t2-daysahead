@@ -104,3 +104,22 @@ Buffer'ı kapat; yoksa yukarıdaki yanlış teşhis tekrarlanır.
 ### Durum etiketleri tek kaynak
 `solar_status` / `wind_status` üreten modülün kendi dosyasındaki `status`
 kolonundan okunur. Hardcode yasak.
+
+---
+
+## KALICI KURALLAR (tekrar düşmemek için)
+
+### Model karşılaştırma
+1. **Her zaman AYNI PENCERE.** Yeni modelin "tam kapsam" skorunu eski modelin "tüm dönem"
+   skoruyla kıyaslamak sahte kazanç üretir. Güneş multi-NWP'de −1,52 göründü, aynı
+   pencerede −0,70 çıktı ve kapı geçmedi.
+2. **Veri kapsaması dönem değiştiriyorsa yarım raporu zorunlu.** IFS 2024Q2'den önce yok.
+3. **WAPE kapısı geçilmese de nMAE'ye bak** (güneş multi-NWP: WAPE −0,70, nMAE −6%).
+4. **RİTM karışımını geriye dönük çekimle ölçme** — revize seri = sızıntı.
+
+### Kill protokolü
+Log sessizliği ≠ ölü süreç. Öldürmeden önce: log mtime (<120 sn), çıktı dosyası mtime,
+süreç listesi. Uzun koşular `python -u`.
+
+### Doğrulama
+`scripts/verify_contract.py` (17 kapı). Denge 0,003906 MW = 2⁻⁸ = float32 tek ULP.
