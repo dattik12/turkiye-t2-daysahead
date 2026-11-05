@@ -161,7 +161,12 @@ def main():
             # T+2: yalniz ML (RITM 24s siniri)
             w2[24:] = wml.to_numpy()[24:]
             wind = pd.Series(w2, index=idx)
-            wstat = f"blend{W_RITM:.2f}_t1_ml100m_t2"
+            # etiket wind_live'in GERCEK surumunu yansitsin (izlenebilirlik)
+            try:
+                _wv = str(pd.read_parquet(WIND_ML)["status"].iloc[0])
+            except Exception:
+                _wv = "ml"
+            wstat = f"blend{W_RITM:.2f}_t1_{_wv}_t2"
             print(f"[ptf48] ruzgar T+1 karisim ({W_RITM:.2f} RITM) | "
                   f"T+2 ML tepe {np.nanmax(w2[24:]):,.0f} MW")
         else:
