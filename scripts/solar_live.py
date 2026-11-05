@@ -138,22 +138,26 @@ def main():
     Xtr, ytr = Xtr[m], ytr[m]
     print(f"egitim: {len(Xtr)} | C_cut {Cc:,.0f} MW")
 
-    mdl = lgb.LGBMRegressor(n_estimators=1500, learning_rate=0.03, num_leaves=15,
-                            max_depth=5, min_child_samples=50, subsample=0.85,
-                            colsample_bytree=0.85, reg_alpha=0.5, reg_lambda=1.0,
-                            random_state=42, verbose=-1)
-    mdl.fit(Xtr, ytr)
+    # ENSEMBLE L2 + L1 + Huber (backtest: 15.44 -> 15.07 gunduz WAPE)
+    mdls = []
+    for obj in ("l2", "l1", "huber"):
+        m = lgb.LGBMRegressor(n_estimators=1500, learning_rate=0.03, num_leaves=15,
+                              max_depth=5, min_child_samples=50, subsample=0.85,
+                              colsample_bytree=0.85, reg_alpha=0.5, reg_lambda=1.0,
+                              objective=obj, random_state=42, verbose=-1)
+        m.fit(Xtr, ytr)
+        mdls.append(m)
 
     tgt = pd.date_range(decision + pd.Timedelta(days=1), periods=48, freq="h")
     lw = live_weather(decision, 3)
     print(f"canli hava: {lw.index.min()} -> {lw.index.max()} | GHI tepe {lw.shortwave_radiation.max():.0f}")
     X = feats(tgt, lw["shortwave_radiation"], lw["cloud_cover"],
               lw["temperature_2m"], lw["wind_speed_10m"])
-    p = np.clip(mdl.predict(X), 0, 1.2) * Cc
+    p = np.clip(np.mean([m.predict(X) for m in mdls], axis=0), 0, 1.2) * Cc
     p = np.where(X["elev"].to_numpy() <= 0, 0.0, p)
 
     out = pd.DataFrame({"datetime": tgt, "solar_mw": np.clip(p, 0, None),
-                        "horizon": ["T+1"] * 24 + ["T+2"] * 24, "status": "ml_v2"})
+                        "horizon": ["T+1"] * 24 + ["T+2"] * 24, "status": "ml_v3_ens"})
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     out.to_parquet(OUT, index=False)
     print(f"YAZILDI {OUT} | T+1 tepe {out.solar_mw[:24].max():,.0f} | T+2 tepe {out.solar_mw[24:].max():,.0f}")
