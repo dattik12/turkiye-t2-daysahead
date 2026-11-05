@@ -187,7 +187,12 @@ def main():
 
     if solar_ml is not None:
         solar = solar_ml.fillna(0.0)
-        solar_status_val = "ml_v2"
+        # etiket solar_live'in GERCEK modelini yansitmali (izlenebilirlik)
+        try:
+            _st = str(pd.read_parquet(SOLAR_ML)["status"].iloc[0])
+        except Exception:
+            _st = "ml"
+        solar_status_val = _st if _st else "ml"
     else:
         solar = SM.solar_from_radiation(rad.reindex(idx), C.SOLAR_CAPACITY_MW,
                                         C.SOLAR_PR, temp_c=tmp.reindex(idx))
