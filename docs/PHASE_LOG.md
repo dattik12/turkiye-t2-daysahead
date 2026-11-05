@@ -233,3 +233,35 @@ out-of-time gerçek **%1,69**. Fark +0,10-0,18 puan. Bu, projenin en büyük
 Yük, hata bütçesinde rüzgardan sonra ikinci (~560-690 MW). Gündüz bias'ı
 −650 MW'a ulaşıyor; bu, rezidüel yükün öğle çukurunu doğrudan bozuyor
 (PTF öğle fiyatına duyarlı).
+
+---
+
+## FAZ 4 — GÜNEŞ TANILAMASI (mimari dokunuş YOK)
+
+`scripts/solar_diag.py`, EVAL_START=2025-01-01, multi-NWP protokolü.
+
+### T+1 / T+2 ayrı (gündüz)
+| | Gündüz WAPE | nMAE | n |
+|---|---|---|---|
+| T+1 | %10,69 | 109 MW | 13.776 |
+| T+2 | %10,75 | 109 MW | 13.800 |
+| T+1 1./2. yarı | 10,19 / 11,13 | | |
+
+### Saat bazlı (T+1, gündüz)
+| Saat | WAPE | bias |
+|---|---|---|
+| 06-09 | 10,34-11,17 | +3…+10 / −10 |
+| **12-14** | **9,63-9,75** | −8…−43 |
+| 15-16 | 10,81-11,31 | −19 / +6 |
+| 17 | 13,28 | +45 |
+| **18** | **17,29** | +48 |
+| **19** | **33,11** | +24 |
+
+### Hükümler
+- **Curtailment şüphesi REDDEDİLDİ.** Öğle bias'ı yalnızca **−8…−43 MW** (~2.000 MW
+  tepeye göre %1-2). Sistematik negatif bias YOK.
+- En iyi saatler **12-14** (%9,63-9,75) — tam öğle.
+- Hata **gün batımında** patlıyor (18: %17,29, 19: %33,11) ama bias küçük (+48, +24):
+  **saçılma**, sistematik değil. O saatlerde üretim düşük olduğu için WAPE doğal olarak şişiyor.
+- Yani güneşte düzeltilecek sistematik bir kusur yok; kalan hata büyük ölçüde
+  ölçümün doğası.
