@@ -140,6 +140,24 @@ def main():
                          "ruzgar", fallback=(None, "kota_yok"), need_om=False)
     if wind is None:
         wind = pd.Series(0.0, index=idx)
+
+    # T+2 RUZGAR: RITM yalnizca 24s veriyor -> 100m ML modeli (wind_live.parquet)
+    WIND_ML = os.path.join(C.DATA, "forecast", "wind_live.parquet")
+    if os.path.exists(WIND_ML):
+        wm = pd.read_parquet(WIND_ML)
+        wm["datetime"] = pd.to_datetime(wm["datetime"])
+        ws = pd.Series(wm["wind_mw"].to_numpy(), index=pd.DatetimeIndex(wm["datetime"]))
+        if getattr(ws.index, "tz", None) is not None:
+            ws.index = ws.index.tz_localize(None)
+        wm2 = ws.reindex(idx[24:])
+        if wm2.notna().sum() >= 20:
+            w2 = np.array(wind.to_numpy(dtype=float), copy=True)
+            w2[24:] = wm2.to_numpy()
+            wind = pd.Series(w2, index=idx)
+            wstat = "ritm_t1_ml100m_t2"
+            print(f"[ptf48] ruzgar T+2: ML 100m tepe {np.nanmax(w2[24:]):,.0f} MW")
+        else:
+            print("[ptf48] UYARI wind_live kapsama yetersiz -> T+2 iklim")
     for s in (rad, tmp, wind):
         if getattr(s.index, "tz", None) is not None:
             s.index = s.index.tz_localize(None)
