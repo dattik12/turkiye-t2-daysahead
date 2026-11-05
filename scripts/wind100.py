@@ -42,9 +42,15 @@ def load_arch():
 
 
 def pc(v):
-    """IEC sigmoid power curve, 3-25 m/s arasi."""
-    p = 1.0 / (1.0 + np.exp(-(v - 8.5) / 1.8))
-    return np.clip(p, 0, 1) * ((v >= 3) & (v <= 25))
+    """IEC sigmoid power curve. GIRIS km/h, icerde m/s'ye cevrilir.
+
+    DIKKAT: Open-Meteo wind_speed_100m varsayilan birimi km/h. Bir zamanlar
+    dogrudan m/s varsayimiyla besleniyordu -> 25 km/h uzeri her saat pc=0
+    oluyordu (fizik ters). 3.6'ya bolmek ZORUNLU.
+    """
+    ms = np.asarray(v, dtype=float) / 3.6
+    p = 1.0 / (1.0 + np.exp(-(ms - 8.5) / 1.8))
+    return np.clip(p, 0, 1) * ((ms >= 3) & (ms <= 25))
 
 
 def main():

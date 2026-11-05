@@ -40,8 +40,10 @@ COORD = {
 
 
 def pc(v):
-    p = 1.0 / (1.0 + np.exp(-(v - 8.5) / 1.8))
-    return np.clip(p, 0, 1) * ((v >= 3) & (v <= 25))
+    """IEC sigmoid power curve. GIRIS km/h -> icerde m/s (Open-Meteo varsayilani)."""
+    ms = np.asarray(v, dtype=float) / 3.6
+    q = 1.0 / (1.0 + np.exp(-(ms - 8.5) / 1.8))
+    return np.clip(q, 0, 1) * ((ms >= 3) & (ms <= 25))
 
 
 def load_arch():
