@@ -85,9 +85,15 @@ def build_features(y: pd.Series, wnat: pd.DataFrame, target_idx: pd.DatetimeInde
         anchor = target_idx - pd.to_timedelta(h + KNOWN_BASE_H, unit="h")
         H = np.ones(len(h))
     else:
-        _D0 = pd.Timestamp(decision_date).normalize()
-        H = ((target_idx.normalize() - _D0).days).to_numpy().astype(float)
-        anchor = known_cutoff(target_idx, decision_date)   # D 08:00, ufuktan BAGIMSIZ
+        try:
+            _D = pd.DatetimeIndex(pd.to_datetime(decision_date))
+        except TypeError:
+            _D = pd.DatetimeIndex([pd.Timestamp(decision_date)])
+        if len(_D) == 1:
+            _D = pd.DatetimeIndex([_D[0]] * len(target_idx))
+        _D = _D.normalize()
+        H = ((target_idx.normalize() - _D).days).to_numpy().astype(float)
+        anchor = pd.DatetimeIndex(_D + pd.Timedelta(hours=LAST_KNOWN_HOUR))
     F = pd.DataFrame(index=target_idx)
 
     # --- taze lag'lar (hedefin kendi saat-eslisi, karar-anina gore guvenli) ---

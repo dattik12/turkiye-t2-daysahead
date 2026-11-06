@@ -104,7 +104,8 @@ def build_consumption(decision: pd.Timestamp, days: tuple[int, ...] = (1, 2)):
         tr_end = decision + pd.Timedelta(hours=MO.DECISION_HOUR - 1)
         tr_start = tr_end - pd.Timedelta(days=EN.TRAIN_DAYS)
         tr_idx = pd.date_range(tr_start, tr_end, freq="h")
-        Xtr = MO.build_features(y, nat, tr_idx)
+        tr_dec = None if off == 1 else (tr_idx.normalize() - pd.Timedelta(days=off))
+        Xtr = MO.build_features(y, nat, tr_idx, decision_date=tr_dec)
         Xtr = Xtr[y.reindex(Xtr.index).notna()]
         Xtr = MO.attach_calendar(Xtr)
         models = EN.fit(Xtr, y.reindex(Xtr.index))

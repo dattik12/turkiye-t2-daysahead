@@ -427,3 +427,33 @@ Iki turda uygulandi (ilk turda `cf_lag` blogu CRLF nedeniyle atlanmisti):
 ### Kalan bilinen iyimserlik (cozulmedi)
 NWP arsivi gun-oncesi vintage degil ("en iyi mevcut tahmin") — ruzgar ve guneste
 her iki ufuk da lead-time acisindan iyimser. Lag sizintisindan AYRI konu.
+
+### KM 2 — T+2 YUK RETRAIN: KAPILAR GECTI ✅ (2026-11-06)
+
+`scripts/load_t2_retrain.py` — per-horizon anchored egitim: her egitim satiri
+kendi karar anindan (`hedef - 2 gun`, 08:00) insa edilir. Boylece lag72+
+guvenli set kullanilir ve egitim/serve rejimi ayni olur.
+
+| | WAPE | nMAE | bias | n |
+|---|---|---|---|---|
+| Eski T+2 (T+1 semantigi) | %4,88 | 1.995 MW | −1.832 MW | 8.736 |
+| **Yeni T+2 (per-horizon)** | **%2,03** | **829 MW** | **−493 MW** | 8.736 |
+| T+1 (dokunulmadi) | %1,67 | 684 MW | −349 MW | 8.736 |
+
+**Kapi sonuclari:**
+| Kapi | Esik | Sonuc |
+|---|---|---|
+| 4,88'den anlamli iyilesme | — | **−2,85 puan** ✅ |
+| Iki yari dengeli | ayni yonde | 1,94 / 2,11 ✅ |
+| bias | < −1.000 MW | −493 MW ✅ |
+
+Beklenti 3-4 bandiydi; 2,03 geldi cunku per-horizon egitim hava sinyalini de
+dogru kullaniyor (T+2'de tasiyici sinyal hava + gunluk ozetler).
+
+Saatlik: en kotu 08-09 (%2,63-2,67, bias −815/−824), en iyi gece 02-04 (%1,35-1,36).
+Gece-gunduz farki T+1'dekinden kucuk — lag kaybi geceyi daha cok vuruyor.
+
+### Kontrat baglantisi
+`morning_ptf.py`: `tr_dec = None if off == 1 else (tr_idx.normalize() - off gun)`.
+T+1 yolu DEGISMEDI (decision_date=None → eski per-satir anchor). T+2 yolu artik
+per-horizon egitimli model kullaniyor.
