@@ -63,7 +63,16 @@ def main() -> int:
     led.to_csv(LEDGER, index=False)
 
     # --- gun bazli ozet
-    g = (led[ok].groupby("target_date")
+    # Ayni hedef saat icin birden fazla kosu varsa TEK satir birak:
+    # 09:00 kosusu tercih edilir; yoksa en son kosu.
+    _s = led[ok].copy()
+    if "run_slot" in _s.columns:
+        _s["_pref"] = _s["run_slot"].astype(str).str.startswith("0900").astype(int)
+    else:
+        _s["_pref"] = 0
+    _s = _s.sort_values(["_pref", "run_ts"]).drop_duplicates(
+        ["target_date", "dt"], keep="last")
+    g = (_s.groupby("target_date")
          .agg(biz=("mape_hour", "mean"),
               teias=("teias_mape_hour", "mean"),
               n=("mape_hour", "size")))
