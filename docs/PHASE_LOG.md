@@ -344,3 +344,33 @@ Iki turlu hata yapildi ve ikisi de testle yakalandi:
 1. `decision_date=None` egitim yolunda tum 730 gune tek cutoff -> tum lag'ler NaN
    -> WAPE %489. Duzeltildi: egitim yolu eski per-satir anchor'u AYNEN koruyor.
 2. Fix'in T+1'i etkilemedigi hash testiyle kanitlandi (b582edaf... degismedi).
+
+### SINIF TARAMASI v2 — DUZELTME (2026-11-06)
+
+Onceki "solar TEMIZ" hukmum **YANLISTI**. Ilk tarama `cf_lag` desenini solar'da
+kacirdi (farkli yazim: `cf.get(t - timedelta)`). Dosya:satir tam tablo:
+
+| Dosya:satir | Builder | Hedef seriden lag | Kirli ufuk |
+|---|---|---|---|
+| `src/morning.py:96` | load | lag24..lag336 | DUZELTILDI |
+| `wind_mnwp.py:121-122` | wind | `cf_lag24/48/168` | **T+2** (24 de kirli) |
+| `wind_mnwp.py:123` | wind | `cf_7d` k=1..7 (min 24h) | **T+2** |
+| `wind100.py:91-92` | wind | `cf_lag24/48/168` | **T+2** |
+| `wind_live.py:122-125` | wind | train lags | **T+2 serve** |
+| `wind_live.py:152-155` | wind | predict lags | **T+2 serve** |
+| `wind_live_v5.py:108-109` | wind | train lags | **T+2 serve** |
+| `wind_live_v5.py:129-130` | wind | predict lags | **T+2 serve** |
+| `solar_mnwp.py:231-232` | solar | `cf_lag48/72/168` | **T+2** (h>8 kismi) |
+| `solar_mnwp.py:239-240` | solar | `cf_7d` k=1 (min 24h) | **T+2** |
+| `solar_t6.py:163` | solar | `cf_lag*` | ayni |
+| `solar_live.py:124-125` | solar | `cf_lag*`, `cf_7d` | **T+2 serve** |
+
+**T+1 durumu:** `cf_lag48` T+1'de = D-1 -> guvenli. Ama `cf_7d`/`cf_lag24`
+k=1 terimi T+1'de t-24 = D gunu → h>8 icin **kismi sizinti**.
+Yani T+1 de tam temiz degil; etkisi olculmeli.
+
+**Gunes notu:** `ghi_7d_same_hour` HAVA serisidir (hedef degil) — 09:00'te tum
+ufuk icin bilinir, sizinti DEGIL. Yalnizca `cf_*` (uretim) lag'leri kirli.
+
+**Ruzgar uretim T+2 skoru (`ml_v5_multinwp`) gercek degeri BILINMIYOR** — ayni
+train/serve kaymasiyla calisiyor.
