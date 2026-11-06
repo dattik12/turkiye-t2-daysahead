@@ -457,3 +457,39 @@ Gece-gunduz farki T+1'dekinden kucuk — lag kaybi geceyi daha cok vuruyor.
 `morning_ptf.py`: `tr_dec = None if off == 1 else (tr_idx.normalize() - off gun)`.
 T+1 yolu DEGISMEDI (decision_date=None → eski per-satir anchor). T+2 yolu artik
 per-horizon egitimli model kullaniyor.
+
+### KM 3a — 3 KASIM VAKASI: KOK NEDEN BULUNDU (2026-11-06)
+
+**Hava, girdi veya model kusuru DEGIL. Yanlis urun olculmus.**
+
+Gerceklesen tuketim (gunluk ort):
+| Tarih | Ort | Max |
+|---|---|---|
+| 2026-11-01 | 33.323 | 39.323 |
+| 2026-11-02 | 38.552 | 45.420 |
+| **2026-11-03** | **39.577** | 45.286 |
+| 2026-11-04 | 40.124 | 46.167 |
+| 2026-11-05 | 40.980 | 47.329 |
+
+11-03 komsulariyla uyumlu (38,5 → 39,6 → 40,1). **Gercek sicrama YOK.**
+Anormal olan tahmin: 35.518, iki komsusunun ~4.000 MW altinda.
+
+**Kok neden — dosya provenance:**
+| Dosya | Uretim zamani | Boyut |
+|---|---|---|
+| yarin_2026-11-03 | **02.11 23:11** | 2.667 B |
+| yarin_2026-11-04 | **03.11 21:12** | 2.665 B |
+| yarin_2026-11-05 | 04.11 21:51 | 5.470 B |
+| yarin_2026-11-06 | **05.11 09:01** | 5.471 B |
+| yarin_2026-11-07 | **06.11 09:01** | 5.471 B |
+
+11-03 ve 11-04 **aksam kosusu** urunu (23:11 / 21:12), sabah 09:00 hattindan
+degil. Boyutlari sabah urununun yarisi -> **farkli/eski pipeline**.
+
+**Hukum:** %10,26 skoru sistemin degil, eski aksam urununun skoru. Sistem track
+record'u **11-06 ve 11-07** ile baslar (ikisi de 09:01 uretimi).
+`data/forecast/morning/archive/` icinde 11-03/11-04'un 09:00 provenance'i YOK —
+o gunler sabah kosusu yapilmamis veya arsivlenmemis.
+
+**Ders:** altin standart olcumu yapmadan once dosyanin URETIM ZAMANI ve BOYUTU
+kontrol edilmeli. Farkli uretim saati = farkli urun.

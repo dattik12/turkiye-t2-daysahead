@@ -23,6 +23,7 @@ from src.features import ptf_store as PS
 from src.solar import model as SM
 
 OUT_DIR = os.path.join(C.DATA, "forecast", "ptf_features")
+WCON_DIR = os.path.join(C.DATA, "forecast", "weather_consumed")
 GUARD_S = 150          # tek dis cagri butcesi (sn); kota/429 asili kalmasin
 
 
@@ -116,6 +117,13 @@ def build_consumption(decision: pd.Timestamp, days: tuple[int, ...] = (1, 2)):
         from src import features as F
         p = p * F.halfday_factor(tgt)
         out[off] = p
+        # Tuketilen havayi arsivle (miss atfi + model gelistirme). Bloklamaz.
+        try:
+            os.makedirs(WCON_DIR, exist_ok=True)
+            nat.to_parquet(os.path.join(
+                WCON_DIR, f"weather_{pd.Timestamp(decision):%Y-%m-%d}_T{off}.parquet"))
+        except Exception as _e:
+            print(f"[ptf48] UYARI hava arsivi yazilamadi: {_e}")
         print(f"[ptf48] T+{off} egitim n={len(Xtr)} | ort {p.mean():,.0f} MW")
     return out
 
