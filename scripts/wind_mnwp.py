@@ -118,9 +118,20 @@ def main():
     F["cos_h"] = np.cos(2 * np.pi * idx.hour / 24)
     F["sin_y"] = np.sin(2 * np.pi * idx.dayofyear / 365)
     F["cos_y"] = np.cos(2 * np.pi * idx.dayofyear / 365)
+    _hz = int(os.environ.get("HZ", "1"))   # 1 = T+1, 2 = T+2 (karar ani D 08:00)
+    _h = idx.hour.to_numpy()
+
+    def _lag_ok(L):
+        return L >= (_hz * 24 + _h - 8)
+
     for L in (24, 48, 168):
-        F[f"cf_lag{L}"] = cf.shift(L).reindex(idx)
-    F["cf_7d"] = sum(cf.shift(24 * k) for k in range(1, 8)).reindex(idx) / 7.0
+        _v = cf.shift(L).reindex(idx).to_numpy()
+        F[f"cf_lag{L}"] = np.where(_lag_ok(L), _v, np.nan)
+    _terms = []
+    for _k in range(1, 8):
+        _v = cf.shift(24 * _k).reindex(idx).to_numpy()
+        _terms.append(np.where(_lag_ok(24 * _k), _v, np.nan))
+    F["cf_7d"] = np.nanmean(np.vstack(_terms), axis=0)
     F["pc_ramp_1h"] = F["pc_ens"].diff(1)
     F["pc_ramp_2h"] = F["pc_ens"].diff(2)
     F["spread_ramp"] = F["nwp_spread"].diff(1)

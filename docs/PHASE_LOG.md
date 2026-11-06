@@ -374,3 +374,21 @@ ufuk icin bilinir, sizinti DEGIL. Yalnizca `cf_*` (uretim) lag'leri kirli.
 
 **Ruzgar uretim T+2 skoru (`ml_v5_multinwp`) gercek degeri BILINMIYOR** — ayni
 train/serve kaymasiyla calisiyor.
+
+### KM 1 — RUZGAR MASKE SONRASI GERCEK SKOR (2026-11-06)
+
+`wind_mnwp.py` ufuk-duyarli maske (`HZ` env): `cf_lag24/48/168` ve `cf_7d`
+(k=1..7) artik `L >= HZ*24 + h - 8` ile maskeleniyor.
+
+| | WAPE | nMAE | bias | n |
+|---|---|---|---|---|
+| Maskesiz (eski, tek sayi) | %15,41 | 705 MW | −18 | 21.792 |
+| **T+1 (HZ=1)** | **%15,53** | 711 MW | −22 | 21.792 |
+| **T+2 (HZ=2)** | **%15,63** | 716 MW | −23 | 21.792 |
+
+**Sizinti bedeli yalnizca 0,12 / 0,22 puan.** Sebep: ruzgar hava-baskin bir seri,
+`cf` lag'leri az tasiyor. Yukteki %1,67 → %4,88 cokusu ruzgarda YOK.
+
+**Hala acik (bilinen, bu turda cozulmedi):** NWP arsivi o saat icin "en iyi
+mevcut tahmin" — gercek gun-oncesi vintage degil. Yani her iki ufuk da
+lead-time acisindan iyimser. Bu, lag sizintisindan AYRI bir konu.

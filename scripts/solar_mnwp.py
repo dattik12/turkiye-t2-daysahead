@@ -237,7 +237,8 @@ def build(decision):
         r["ghi_ratio_7d"] = (g_i / g7m) if (g7m and g7m > 20) else np.nan
         cs30 = float(GHI_CS30.get(t, np.nan)) if GHI_CS30 is not None else np.nan
         r["csi_30d"] = (g_i / cs30) if (cs30 == cs30 and cs30 > 20 and g_i == g_i) else np.nan
-        w7 = [cf.get(t - pd.Timedelta(days=k), np.nan) for k in range(1, 8)]
+        w7 = [cf.get(t - pd.Timedelta(days=k), np.nan)
+              if (24 * k) >= (hz * 24 + t.hour - 8) else np.nan for k in range(1, 8)]
         r["cf_same_hour_7d"] = float(np.nanmean(w7)) if np.any(~np.isnan(w7)) else np.nan
         # --- FIZIK: panel sicakligi, isi kaybi, clear-sky indeksi, nem ---
         tcell = tp + (g_i / 800.0) * 25.0 if (tp == tp and g_i == g_i) else np.nan
