@@ -37,24 +37,40 @@ def _runlen(s: pd.Series) -> pd.Series:
 from . import config as C
 
 DECISION_HOUR = 9          # kosu saati (TR)
-KNOWN_BASE_H = DECISION_HOUR + 7   # = 16: hedef saat h icin minimum lag
-ALWAYS_LAGS = [48, 72, 96, 120, 144, 168, 336]   # her h icin guvenli
+LAST_KNOWN_HOUR = DECISION_HOUR - 1   # = 8: karar aninda bilinen son TAM saat
+KNOWN_BASE_H = DECISION_HOUR + 7      # = 16: yalnizca T+1 icin minimum lag (geriye uyum)
+ALWAYS_LAGS = [48, 72, 96, 120, 144, 168, 336]   # T+1'de her h icin guvenli
 FRESH_LAGS = [24]                                # sadece h <= 8 icin guvenli
 
 
-def known_cutoff(target_idx: pd.DatetimeIndex) -> pd.DatetimeIndex:
-    """Her hedef saat icin karar aninda bilinen EN SON tam saat."""
-    h = target_idx.hour.to_numpy()
-    return target_idx - pd.to_timedelta(h + KNOWN_BASE_H, unit="h")
+def known_cutoff(target_idx: pd.DatetimeIndex,
+                 decision_date=None) -> pd.DatetimeIndex:
+    """Her hedef saat icin karar aninda bilinen EN SON tam saat.
+
+    Cutoff HEDEF TARIHTEN DEGIL, karar gununden turetilir: D 08:00.
+    decision_date verilmezse T+1 varsayilir (hedef gunun bir onceki gunu) —
+    bu geriye uyum icindir; T+2 cagiranlar ACIKCA gecmelidir.
+    """
+    idx = pd.DatetimeIndex(target_idx)
+    if decision_date is None:
+        decision_date = idx.normalize().min() - pd.Timedelta(days=1)
+    d = pd.Timestamp(decision_date).normalize() + pd.Timedelta(hours=LAST_KNOWN_HOUR)
+    return pd.DatetimeIndex([d] * len(idx), name=idx.name)
 
 
-def _lag_known(L: int, h: np.ndarray) -> np.ndarray:
-    """lag L, hedef saat h icin karar aninda biliniyor mu?"""
-    return L >= (h + KNOWN_BASE_H)
+def _lag_known(L: int, h: np.ndarray, horizons=None) -> np.ndarray:
+    """lag L, hedef saat h icin karar aninda biliniyor mu?
+
+    horizons = hedef gun - karar gunu (T+1 -> 1, T+2 -> 2).
+    Esik = horizons*24 + h - LAST_KNOWN_HOUR  (T+1 icin h+16'ya esit).
+    """
+    if horizons is None:
+        horizons = np.ones(len(h))
+    return L >= (np.asarray(horizons, dtype=float) * 24 + h - LAST_KNOWN_HOUR)
 
 
 def build_features(y: pd.Series, wnat: pd.DataFrame, target_idx: pd.DatetimeIndex,
-                   cal: pd.DataFrame | None = None) -> pd.DataFrame:
+                   cal: pd.DataFrame | None = None, decision_date=None) -> pd.DataFrame:
     """Hedef saatlere gore ozellik tablosu. Kaynak verideki her deger
     karar aninda (bugun 09:00) bilinen tek bir saate baglanir."""
     target_idx = pd.DatetimeIndex(target_idx)
@@ -63,21 +79,26 @@ def build_features(y: pd.Series, wnat: pd.DataFrame, target_idx: pd.DatetimeInde
     wnat = wnat[~wnat.index.duplicated(keep="last")].sort_index()
     y = y[~y.index.duplicated(keep="last")].sort_index()
     h = target_idx.hour.to_numpy()
-    anchor = known_cutoff(target_idx)          # bilinen son tam saat
+    if decision_date is None:
+        decision_date = target_idx.normalize().min() - pd.Timedelta(days=1)
+    _D0 = pd.Timestamp(decision_date).normalize()
+    H = ((target_idx.normalize() - _D0).days).to_numpy().astype(float)
+    anchor = known_cutoff(target_idx, decision_date)   # karar gunu 08:00, ufuktan BAGIMSIZ
     F = pd.DataFrame(index=target_idx)
 
     # --- taze lag'lar (hedefin kendi saat-eslisi, karar-anina gore guvenli) ---
     for L in ALWAYS_LAGS:
-        F[f"lag{L}"] = y.reindex(target_idx - pd.Timedelta(hours=L)).to_numpy()
+        v = y.reindex(target_idx - pd.Timedelta(hours=L)).to_numpy()
+        F[f"lag{L}"] = np.where(_lag_known(L, h, H), v, np.nan)
     for L in FRESH_LAGS:
         v = y.reindex(target_idx - pd.Timedelta(hours=L)).to_numpy()
-        F[f"lag{L}"] = np.where(_lag_known(L, h), v, np.nan)
+        F[f"lag{L}"] = np.where(_lag_known(L, h, H), v, np.nan)
 
     # --- ayni-saat ortalamasi: yalnizca BILINEN gunler ---
     shifts = list(range(24, 193, 24))
     M = pd.DataFrame({f"s{L}": y.reindex(target_idx - pd.Timedelta(hours=L)).to_numpy()
                       for L in shifts}, index=target_idx)
-    known = pd.DataFrame({f"s{L}": _lag_known(L, h) for L in shifts}, index=target_idx)
+    known = pd.DataFrame({f"s{L}": _lag_known(L, h, H) for L in shifts}, index=target_idx)
     Mv = M.where(known)
     F["samehr_known_mean"] = Mv.mean(axis=1)
     F["samehr_known_median"] = Mv.median(axis=1)

@@ -109,7 +109,7 @@ def build_consumption(decision: pd.Timestamp, days: tuple[int, ...] = (1, 2)):
         Xtr = MO.attach_calendar(Xtr)
         models = EN.fit(Xtr, y.reindex(Xtr.index))
 
-        X = MO.attach_calendar(MO.build_features(y, nat, tgt))
+        X = MO.attach_calendar(MO.build_features(y, nat, tgt, decision_date=decision))
         p = EN.predict(models, X, tgt)
         p.index = tgt
         from src import features as F

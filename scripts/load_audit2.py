@@ -89,7 +89,7 @@ def main():
             last_fit = dec
         for off, NAT in ((1, N1), (2, N2)):
             tgt = pd.date_range(dec + pd.Timedelta(days=off), periods=24, freq="h")
-            X = MO.attach_calendar(MO.build_features(y, NAT, tgt))
+            X = MO.attach_calendar(MO.build_features(y, NAT, tgt, decision_date=dec))
             p = EN.predict(models, X, tgt) * F.halfday_factor(tgt)
             a = y.reindex(tgt)
             for t, pv, av in zip(tgt, p.to_numpy(), a.to_numpy()):

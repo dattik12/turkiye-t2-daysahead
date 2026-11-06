@@ -265,3 +265,56 @@ Yük, hata bütçesinde rüzgardan sonra ikinci (~560-690 MW). Gündüz bias'ı
   **saçılma**, sistematik değil. O saatlerde üretim düşük olduğu için WAPE doğal olarak şişiyor.
 - Yani güneşte düzeltilecek sistematik bir kusur yok; kalan hata büyük ölçüde
   ölçümün doğası.
+
+---
+
+## SIZINTI #3 — `known_cutoff` HEDEFTEN TURETILIYORDU (2026-11-06)
+
+### Mekanizma
+`known_cutoff(target_idx)` cutoff'u HEDEF tarihten turetiriyordu:
+`target - (h + 16)h`. T+1 icin D 08:00 cikar (dogru), **T+2 icin D+1 08:00**
+cikar — yani T+2 tum feature'lar bir gun fazla bilgiyle hesaplaniyordu.
+`ALWAYS_LAGS` (48+) kosulsuz uygulandigi icin T+2'de lag48 = D gunu = cutoff
+sonrasi. Sonuc: **T+2 fiilen T+1 problemi olarak olculuyordu** — T+1=T+2
+esitliginin sebebi buydu.
+
+### Fix (3 tasarim sarti)
+1. `known_cutoff(target_idx, decision_date)` — cutoff **karar gunu 08:00**
+   (`LAST_KNOWN_HOUR = DECISION_HOUR - 1`), hedeften BAGIMSIZ. Magic 16/40 yok.
+2. `_lag_known(L, h, horizons)` — esik = `horizons*24 + h - LAST_KNOWN_HOUR`
+   (T+1 icin h+16'ya esit, geriye uyum). `ALWAYS_LAGS` de artik maskeli.
+3. `build_features(..., decision_date=)` — cagiranlar acikca gecer.
+
+### Regresyon testi (ZORUNLU) — `scripts/feat_check.py`
+12 gun x 24 saat, N1/N2 arsiv havasi:
+
+| | ESKI hash | YENI hash | NaN | Sonuc |
+|---|---|---|---|---|
+| **T+1** | `b582edaf5752694a` | `b582edaf5752694a` | 180→180 | **BIT-IDENTICAL** |
+| T+2 | `0d801921c8ea236c` | `58e1b9f00e1a3eac` | 180→468 | leak kaldirildi |
+
+NaN artisi tam 288 = lag24 (108) + lag48 (180) maskelendi. Beklenen deger.
+**T+1 %1,69 AYNEN GECERLI — yeniden kosmaya gerek yok.**
+
+### Cagri yerleri guncellendi
+`scripts/morning_ptf.py:112` ve `scripts/load_audit2.py:92` → `decision_date=`.
+`morning_run.py` T+1-only oldugu icin varsayilan (target-1 gun) dogru kalir.
+
+### Etki yaricapi
+- **Raporlanmis HER T+2 yuk sayisi gecersiz.** Yeni baseline asagida.
+- Uretimde sizinti YOKTU (canlida `y` D+1'e uzanmaz → NaN), ama **NaN'li olu
+  feature** vardi. Fix ile T+2 satirlari canli feature'la uretilecek → kalite
+  muhtemelen ARTTI. Iki cumle ayni anda dogru.
+- Egitim hala T+1 semantiginde (base-16). Bilinen uyumsuzluk, retrain YOK;
+  horizon-farkinda egitim **Faz 5b adayi**.
+
+### SINIF TARAMASI (ayni turda, zorunlu)
+| Builder | Hedefden tureyen cutoff | Shiftsiz rolling | Ufuk-bagimsiz lag | Durum |
+|---|---|---|---|---|
+| load `src/morning.py` | vardi → **DUZELTILDI** | yok | vardi → **DUZELTILDI** | ✅ temiz |
+| solar `solar_mnwp.py` | yok | tumu `.shift(1)` | uretim lag'i yok | ✅ **temiz** |
+| wind `wind_mnwp.py` | yok | `.shift(1)` | `cf_lag24/48/168` + `cf_7d(k=1..7)` | ❌ **KIRLI** |
+
+**Ruzgar da ayni sinifta:** `cf_lag24` T+2'de D+1 saatine denk gelir; `cf_7d`
+icindeki k=1 terimi de oyle. Ruzgar T+2 sayilari da supheli — **Faz 5b'de
+ayni maskeyle duzeltilmeli** (bu turda dokunulmadi, load fix'i muhurlensin once).
