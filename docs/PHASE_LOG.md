@@ -392,3 +392,38 @@ train/serve kaymasiyla calisiyor.
 **Hala acik (bilinen, bu turda cozulmedi):** NWP arsivi o saat icin "en iyi
 mevcut tahmin" — gercek gun-oncesi vintage degil. Yani her iki ufuk da
 lead-time acisindan iyimser. Bu, lag sizintisindan AYRI bir konu.
+
+### KM 1 — GERCEK SKOR TABLOSU v1.0 (2026-11-06)
+
+Tum builder'larda ufuk-duyarli lag maskesi uygulandi. Uc seri, T+1/T+2 AYRI,
+ayni protokoller.
+
+| Seri | T+1 | T+2 | Metrik |
+|---|---|---|---|
+| **Yuk** | **%1,67** | **%4,88** | WAPE (tum saatler) |
+|  | 684 MW | 1.995 MW | nMAE |
+| **Ruzgar** | **%15,53** | **%15,63** | WAPE |
+|  | 711 MW | 716 MW | nMAE |
+| **Gunes (gunduz)** | **%10,76** | **%10,86** | WAPE |
+|  | 109 MW | 110 MW | nMAE |
+| Gunes (tum gun) | %11,33 | %11,43 | WAPE |
+
+### Sizinti bedeli — seri bazinda
+| Seri | T+1 | T+2 |
+|---|---|---|
+| Yuk | +0,00 | **+3,19 puan** |
+| Ruzgar | +0,12 | +0,22 |
+| Gunes | +0,07 | +0,11 |
+
+**Desen net: sizinti yalniz YUKTE yikici.** Ruzgar ve gunes hava-baskin;
+`cf` lag'leri az tasiyor, bu yuzden maskenin bedeli ~0,1 puan.
+
+### Guneste maske ayrintisi
+Iki turda uygulandi (ilk turda `cf_lag` blogu CRLF nedeniyle atlanmisti):
+- yalniz `cf_same_hour_7d` maskeli: T+1 %10,76 / T+2 %10,82
+- `cf_lag48/72/168` de maskeli: T+1 %10,76 / T+2 %10,86
+`ghi_7d_same_hour` DOKUNULMADI (hava serisi, sizinti degil).
+
+### Kalan bilinen iyimserlik (cozulmedi)
+NWP arsivi gun-oncesi vintage degil ("en iyi mevcut tahmin") — ruzgar ve guneste
+her iki ufuk da lead-time acisindan iyimser. Lag sizintisindan AYRI konu.

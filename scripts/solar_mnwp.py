@@ -230,7 +230,8 @@ def build(decision):
                  sin_h=np.sin(2 * np.pi * t.hour / 24), cos_h=np.cos(2 * np.pi * t.hour / 24),
                  sin_y=np.sin(2 * np.pi * t.dayofyear / 365), cos_y=np.cos(2 * np.pi * t.dayofyear / 365))
         for L in (48, 72, 168):
-            r[f"cf_lag{L}"] = cf.get(t - pd.Timedelta(hours=L), np.nan)
+            _ok = L >= (hz * 24 + t.hour - 8)
+            r[f"cf_lag{L}"] = cf.get(t - pd.Timedelta(hours=L), np.nan) if _ok else np.nan
         g7 = [ghi.get(t - pd.Timedelta(days=k), np.nan) for k in range(1, 8)]
         g7m = float(np.nanmean(g7)) if np.any(~np.isnan(g7)) else np.nan
         r["ghi_7d_same_hour"] = g7m
