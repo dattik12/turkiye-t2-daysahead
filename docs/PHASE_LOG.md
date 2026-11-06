@@ -318,3 +318,29 @@ NaN artisi tam 288 = lag24 (108) + lag48 (180) maskelendi. Beklenen deger.
 **Ruzgar da ayni sinifta:** `cf_lag24` T+2'de D+1 saatine denk gelir; `cf_7d`
 icindeki k=1 terimi de oyle. Ruzgar T+2 sayilari da supheli — **Faz 5b'de
 ayni maskeyle duzeltilmeli** (bu turda dokunulmadi, load fix'i muhurlensin once).
+
+### SIZINTI #3 — YENI BASELINE (2026-11-06, `la4.log`)
+
+| | WAPE | nMAE | bias | n | Not |
+|---|---|---|---|---|---|
+| **T+1** | **%1,67** | 684 MW | −349 MW | 8.736 | gecerli (feature bit-identical) |
+| **T+2** | **%4,88** | 1.995 MW | −1.832 MW | 8.736 | **gercek T+2** (onceki 1,69 sahte) |
+| T+1 1./2. yari | 1,63 / 1,71 | | | | dengeli |
+
+T+1'de 1,69 → 1,67 farki **MLP tohum gurultusu** (ensemble'da mlp2 agirligi 0,70,
+egitim stokastik). Feature hash'i bit-identical oldugu icin fix'ten gelmiyor.
+
+### T+2 neden %4,88
+Model hala T+1 semantigiyle egitiliyor (lag48/72/168 dolu). T+2 serve'te lag24
+tamamen, lag48 kismen NaN → **egitim/serve kaymasi**. Bu kayma ÜRETIMDE DE VARDI
+(canlida `y` D+1'e uzanmadigi icin ayni NaN'lar olusuyordu) — yani kontratin T+2
+yuk satirlari aylardir bu rejimde uretiliyordu, sadece hic olculmemisti.
+
+**Duzeltme yolu:** horizon-farkinda egitim (T+2 icin lag48+ / T+1 icin lag24+).
+Faz 5b adayi. Bu turda retrain YOK (kullanici sarti).
+
+### Ders
+Iki turlu hata yapildi ve ikisi de testle yakalandi:
+1. `decision_date=None` egitim yolunda tum 730 gune tek cutoff -> tum lag'ler NaN
+   -> WAPE %489. Duzeltildi: egitim yolu eski per-satir anchor'u AYNEN koruyor.
+2. Fix'in T+1'i etkilemedigi hash testiyle kanitlandi (b582edaf... degismedi).

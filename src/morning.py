@@ -80,10 +80,14 @@ def build_features(y: pd.Series, wnat: pd.DataFrame, target_idx: pd.DatetimeInde
     y = y[~y.index.duplicated(keep="last")].sort_index()
     h = target_idx.hour.to_numpy()
     if decision_date is None:
-        decision_date = target_idx.normalize().min() - pd.Timedelta(days=1)
-    _D0 = pd.Timestamp(decision_date).normalize()
-    H = ((target_idx.normalize() - _D0).days).to_numpy().astype(float)
-    anchor = known_cutoff(target_idx, decision_date)   # karar gunu 08:00, ufuktan BAGIMSIZ
+        # GERIYE UYUM (egitim yolu): her satir icin T+1 varsayimi.
+        # Egitim protokolu degismesin diye bu yol AYNEN korunur.
+        anchor = target_idx - pd.to_timedelta(h + KNOWN_BASE_H, unit="h")
+        H = np.ones(len(h))
+    else:
+        _D0 = pd.Timestamp(decision_date).normalize()
+        H = ((target_idx.normalize() - _D0).days).to_numpy().astype(float)
+        anchor = known_cutoff(target_idx, decision_date)   # D 08:00, ufuktan BAGIMSIZ
     F = pd.DataFrame(index=target_idx)
 
     # --- taze lag'lar (hedefin kendi saat-eslisi, karar-anina gore guvenli) ---
