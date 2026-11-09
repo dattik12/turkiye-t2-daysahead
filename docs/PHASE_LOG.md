@@ -493,3 +493,57 @@ o gunler sabah kosusu yapilmamis veya arsivlenmemis.
 
 **Ders:** altin standart olcumu yapmadan once dosyanin URETIM ZAMANI ve BOYUTU
 kontrol edilmeli. Farkli uretim saati = farkli urun.
+
+---
+
+## OLAY — 9 KASIM 09:00 KONTRATI YAZILMADI (2026-11-09)
+
+### Ne oldu
+09:00 kosusu `exit=0` dondu ama **kontrat yazilmadi**. `latest.parquet` 8 Kasim
+09:03'te kalmisti. Gunun ilk yarisi PTF ekibi bayat kontratla calisti.
+
+### Kok neden zinciri
+1. Open-Meteo kota + baglanti hatasi (`WinError 10060`)
+2. Canli hava yok -> onbellek (son 2026-11-08 23:00)
+3. `rad` yok -> **gunes 0** -> koruma devreye girdi:
+   `raise SystemExit("[ptf48] HATA: gunes tamamen 0 (kota) - kontrat YAZILMADI")`
+4. Koruma DOGRU davrandi (cop kontrat yazmadi) **ama sessiz kaldi**
+
+### Sessizligin sebebi
+`run_morning.bat` icinde `morning_ptf` cagrisinin cikis kodu okunmuyordu:
+`RC` yalnizca `morning_run.py`'den geliyordu. `SystemExit` -> rc=1, ama wrapper
+yine de `exit=0` dondurdu.
+
+### Yapilan
+`run_morning.bat`: `setlocal enabledelayedexpansion` + ptf cikis kodu yakalama:
+```
+  "%PY%" -u -m scripts.morning_ptf >> "%LOG%" 2>&1
+  set PTFRC=!ERRORLEVEL!
+  if not "!PTFRC!"=="0" (
+    echo [ptf] BASARISIZ rc=!PTFRC! >> "data\logs\LAST_FAILURE.txt"
+    echo tarih=%STAMP% >> "data\logs\LAST_FAILURE.txt"
+  )
+```
+Test edildi (echo'lu kopya + `cmd /c exit 3`): `[ptf] BASARISIZ rc=3` yazildi.
+Ana urun akisi bozulmadi (wrapper yine exit=0 — urun uretildi, yalniz kontrat eksik).
+
+### Asil yapisal sorun — ARSIVLER TUKENMIS
+| Arsiv | Son veri |
+|---|---|
+| `prov_lead100` (ruzgar 100m) | **2026-11-04** |
+| `multinwp/wind`, `multinwp/solar` | eski ceyrekler |
+
+**Sabah isi yeni hava CEKMIYOR.** Arsivlerle calisiyor, arsivler tukenmis.
+Sonuc (elle yeniden kosu sonrasi kontrat):
+| | T+1 | T+2 |
+|---|---|---|
+| Yuk | 42.422 | 40.939 |
+| Gunes | 1.970 (fizik) | 3.065 (fizik) |
+| **Ruzgar** | 1.407 | **0** |
+
+T+2 ruzgar SIFIR. Gercek 7.000-9.000 MW olmali.
+
+### Siradaki (onay bekliyor)
+1. **Gunluk NWP cekimi** — kota butceli, sabah isinin onunde. Bu olmadan
+   ruzgar/gunes hep fallback.
+2. Kontrat tazelik alarmi (latest.parquet >24s ise uyar).

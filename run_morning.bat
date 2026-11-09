@@ -1,7 +1,7 @@
 @echo off
 rem Gunluk sabah sozlesmesi kosucusu (SYSTEM gorevi bunu cagirir).
 rem Ciktiyi tarihli log dosyasina yazar; basarisizlikta exit code korunur.
-setlocal
+setlocal enabledelayedexpansion
 cd /d C:\projeler\turkiye-t2-daysahead
 if not exist data\logs mkdir data\logs
 set STAMP=
@@ -20,6 +20,11 @@ if "%RC%"=="0" (
   "%PY%" -u -m scripts.morning_scoreboard >> "%LOG%" 2>&1
   rem 48 satirlik PTF kontrati (T+1 + T+2) — sabah modelinden, bloklamaz.
   "%PY%" -u -m scripts.morning_ptf >> "%LOG%" 2>&1
+  set PTFRC=!ERRORLEVEL!
+  if not "!PTFRC!"=="0" (
+    echo [ptf] BASARISIZ rc=!PTFRC! >> "data\logs\LAST_FAILURE.txt"
+    echo tarih=%STAMP% >> "data\logs\LAST_FAILURE.txt"
+  )
   rem Gunluk kontrat arsivi + feature surum damgasi (PTF ablation izi; bloklamaz).
   "%PY%" -u -m scripts.archive_contract >> "%LOG%" 2>&1
   rem Sabah urununu GitHub'a tasi (ayri klon uzerinden; bloklamaz).
