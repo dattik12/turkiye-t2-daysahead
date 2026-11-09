@@ -11,6 +11,10 @@ set LOG=data\logs\morning_%STAMP%.log
 
 set PY=C:\Users\cagatay.bayrak\AppData\Local\Programs\Python\Python311\python.exe
 
+rem Gunluk NWP cekimi (kota butceli, il basina tek istek). Bloklamaz:
+rem basarisiz olursa arsivdeki veriyle devam edilir.
+"%PY%" -u -m scripts.pull_daily >> "%LOG%" 2>&1
+
 "%PY%" -u scripts\morning_run.py >> "%LOG%" 2>&1
 set RC=%ERRORLEVEL%
 
