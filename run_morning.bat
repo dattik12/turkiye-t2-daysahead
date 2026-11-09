@@ -23,6 +23,9 @@ rem Bloklamaz -> RC'yi degistirmez.
 if "%RC%"=="0" (
   "%PY%" -u -m scripts.morning_scoreboard >> "%LOG%" 2>&1
   rem 48 satirlik PTF kontrati (T+1 + T+2) — sabah modelinden, bloklamaz.
+  rem Ruzgar ve gunes ML ciktilarini uret (morning_ptf bunlari okur). Bloklamaz.
+  "%PY%" -u scripts\wind_live_v5.py >> "%LOG%" 2>&1
+  "%PY%" -u scripts\solar_live.py >> "%LOG%" 2>&1
   "%PY%" -u -m scripts.morning_ptf >> "%LOG%" 2>&1
   set PTFRC=!ERRORLEVEL!
   if not "!PTFRC!"=="0" (
