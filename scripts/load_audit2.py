@@ -89,7 +89,12 @@ def main():
             last_fit = dec
         for off, NAT in ((1, N1), (2, N2)):
             tgt = pd.date_range(dec + pd.Timedelta(days=off), periods=24, freq="h")
-            X = MO.attach_calendar(MO.build_features(y, NAT, tgt, decision_date=dec))
+            # CANLI ES DEGER: sabah 09:00 kosusunda y 07:00'de biter.
+            if os.environ.get("CUT_Y", "0") == "1":
+                _yc = y[y.index <= dec + pd.Timedelta(hours=MO.DECISION_HOUR - 2)]
+            else:
+                _yc = y
+            X = MO.attach_calendar(MO.build_features(_yc, NAT, tgt, decision_date=dec))
             p = EN.predict(models, X, tgt) * F.halfday_factor(tgt)
             a = y.reindex(tgt)
             for t, pv, av in zip(tgt, p.to_numpy(), a.to_numpy()):

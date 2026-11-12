@@ -636,3 +636,28 @@ Model egitimde bu uc ozelligi HEP DOLU gordu. Serve'te NaN gelince:
 Backtest `y` tam oldugu icin bu hata HIC gorunmedi. "Backtest 1,67 diyor ama
 canli 6 veriyor" sorusunun cevabi: **serve aninda 3 ozellik NaN gidiyordu.**
 Her yeni ozellik icin "serve aninda dolu mu?" testi gerekli.
+
+### CANLI ES DEGER OLCUM (CUT_Y=1, 364 gun)
+
+`load_audit2.py` CUT_Y=1: her karar gununde `y` 07:00'de kesilir — gercek sabah
+kosusunun birebir taklidi.
+
+| | WAPE | nMAE | bias |
+|---|---|---|---|
+| **T+1** | **%1,85** | 757 MW | −402 |
+| T+2 | %5,09 | 2.084 MW | −1.898 |
+| 1./2. yari | 1,82 / 1,88 | | dengeli |
+
+**Karsilastirma:**
+| | WAPE |
+|---|---|
+| TEIAS | %1,62 |
+| Biz canli-esdeger | **%1,85** |
+| Biz canli (8 gun fiili) | %3,18 |
+| Biz backtest (tam y, iyimser) | %1,67 |
+
+Fark TEIAS'la 1,56 puandan **0,23 puana** indi (%85 kapanma).
+
+### Acik
+T+2 %5,09 — T+1 gibi toparlanmadi. Ayni fix T+2'de ayni etkiyi vermedi;
+per-horizon egitim + kesik y kombinasyonu ayri incelenmeli.
