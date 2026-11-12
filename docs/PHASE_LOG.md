@@ -547,3 +547,42 @@ T+2 ruzgar SIFIR. Gercek 7.000-9.000 MW olmali.
 1. **Gunluk NWP cekimi** — kota butceli, sabah isinin onunde. Bu olmadan
    ruzgar/gunes hep fallback.
 2. Kontrat tazelik alarmi (latest.parquet >24s ise uyar).
+
+---
+
+## ZINCIR CALISIYOR — 3 GUN KANIT (2026-11-10 / 11 / 12)
+
+09:00 gorevi uc gun ust uste otomatik kostu, **hepsi basarili**.
+`data/logs/LAST_FAILURE.txt` BOS.
+
+| Tarih | Log boyut | Sonuc |
+|---|---|---|
+| 2026-11-10 09:00 | 6.348 B | exit=0 |
+| 2026-11-11 09:00 | 6.387 B | exit=0 |
+| 2026-11-12 09:00 | 6.430 B | exit=0 |
+| 2026-11-12 11:37 (elle prova) | — | exit=0 |
+
+Gunluk urunler: `yarin_2026-11-10/11/12/13` — hepsi sabah 09:01-09:04 arasi.
+
+### 12 Kasim 09:00 logu (tam otomatik)
+```
+[pull_daily] ok=10 fail=0
+[pull_lead]  ok=10 fail=0
+YAZILDI wind_live  | T+1 tepe 10.129 | T+2 tepe 10.370
+YAZILDI solar_live | T+1 tepe  2.041 | T+2 tepe  1.579
+[ptf48] YAZILDI 48x13 | denge 0.003906
+[wrapper] exit=0
+```
+
+Kontrat T+2 ruzgar **10.370 MW** (9 Kasim'da SIFIR), gunes **2.041 MW**
+(9 Kasim'da fizikten 12.603). Ikisi de artik gercek model ciktisi.
+
+### Determinizm
+MLP egitiminde CUDA nondeterminizmi skorlari ~0,02 puan oynatiyordu
+(1,69 -> 1,67 ayni kod/hash ile). `cudnn.deterministic=True`,
+`benchmark=False` eklendi. Tohumlar zaten sabitti (random_seed=42,
+MLP_SEEDS, generator seed=7).
+
+### Kalan risk
+Open-Meteo kotasi. Ama artik SESSIZ degil: kontrat yazilamazsa
+`LAST_FAILURE.txt`'e `[ptf] BASARISIZ rc=N` dusuyor.

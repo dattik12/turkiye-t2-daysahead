@@ -56,6 +56,12 @@ def _fit_mlp(X, yv, seed: int = 7):
     import torch.nn as nn
 
     torch.manual_seed(seed); np.random.seed(seed)
+    # CUDA nondeterminizmi skorlari ~0.02 puan oynatiyordu; sabitle.
+    try:
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+    except Exception:
+        pass
     idx = X.index
     hh = idx.hour.values.astype(np.int64)
     dd = idx.dayofweek.values.astype(np.int64)
