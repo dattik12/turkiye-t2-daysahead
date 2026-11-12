@@ -661,3 +661,30 @@ Fark TEIAS'la 1,56 puandan **0,23 puana** indi (%85 kapanma).
 ### Acik
 T+2 %5,09 — T+1 gibi toparlanmadi. Ayni fix T+2'de ayni etkiyi vermedi;
 per-horizon egitim + kesik y kombinasyonu ayri incelenmeli.
+
+### T+2 DUZELTMESI — 5,09 YANILTICIYDI (2026-11-12)
+
+`load_audit2.py` **TEK model** egitip iki ufka birden kullaniyor (T+1 semantigi).
+Bu yuzden CUT_Y ile T+2 = 5,09% cikti — bu bir olcum hatasiydi, gercek T+2
+performansi degil.
+
+Dogru konfigurasyon `load_t2_retrain.py` (per-horizon anchored egitim) + CUT_Y:
+
+| | WAPE | nMAE | bias |
+|---|---|---|---|
+| **T+2 (per-horizon + kesik y)** | **%2,14** | 875 MW | −520 |
+| 1./2. yari | 1,99 / 2,27 | | dengeli |
+
+Yani gercek T+2 ~%2,1-2,2 bandinda. 5,09 yanlisti, 3,20 de yanlisti (o da tek
+modeldi, sadece bias eklenmis haliydi).
+
+### TAM YIGIN OZETI (CUT_Y dump + kapali dongu bias, 365 gun)
+| Ufuk | Duzeltmesiz | Duzeltmeli | Son 90 gun |
+|---|---|---|---|
+| **T+1** | 1,86% | **1,66%** | **1,51%** |
+| T+2 | 4,98% | 3,20% | 3,81% |
+| T+2 (per-horizon konfig) | 2,14% | olculuyor | — |
+
+Kalan bias: T+1 −22 MW (son 90g +16) -> sapma fiilen kapandi.
+
+TEIAS: %1,62 (8 gun). Biz son 90 gunde %1,51 -> sayi olarak onde, donem farkli.

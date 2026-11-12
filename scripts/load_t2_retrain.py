@@ -41,8 +41,11 @@ def main():
 
     NAT = m.build_nat(HZ)
 
-    def feats(idx, dec):
-        return MO.attach_calendar(MO.build_features(y, NAT, idx, decision_date=dec))
+    def feats(idx, dec, cut=False):
+        yy = y
+        if cut and os.environ.get("CUT_Y", "0") == "1":
+            yy = y[y.index <= pd.Timestamp(dec) + pd.Timedelta(hours=MO.DECISION_HOUR - 2)]
+        return MO.attach_calendar(MO.build_features(yy, NAT, idx, decision_date=dec))
 
     end = y.index.max().normalize()
     dec_days = pd.date_range(end - pd.Timedelta(days=EVAL_DAYS),
@@ -64,7 +67,7 @@ def main():
                   f"lag72 NaN {int(Xtr['lag72'].isna().sum()) if 'lag72' in Xtr else -1}",
                   flush=True)
         tgt = pd.date_range(dec + pd.Timedelta(days=HZ), periods=24, freq="h")
-        X = feats(tgt, dec)
+        X = feats(tgt, dec, cut=True)
         p = EN.predict(models, X, tgt) * F.halfday_factor(tgt)
         a = y.reindex(tgt)
         for t, pv, av in zip(tgt, p.to_numpy(), a.to_numpy()):
