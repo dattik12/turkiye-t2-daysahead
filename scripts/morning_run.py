@@ -172,6 +172,36 @@ def run(decision: pd.Timestamp | None = None) -> pd.DataFrame:
             print(f"[morning] UYARI: bias tablosu okunamadi ({str(ex)[:60]}) — ham tahmin")
     else:
         print("[morning] bias duzeltmesi KAPALI")
+
+    # --- CANLI KAPALI DONGU BIAS (2026-11-12) ---
+    # Sabit tablo BACKTEST kosullarindan geliyor (Agustos-Kasim, bias kucuk).
+    # Canlida talep artinca gercek bias -1.371 MW'a cikti; tablo +249 ekliyordu.
+    # Cozum: kendi canli hatalarindan saatlik reziduel medyan -> kapali dongu.
+    if os.environ.get("LIVE_BIAS_FIX", "1") == "1":
+        try:
+            _led = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                "data", "results", "morning_history.csv")
+            if os.path.exists(_led):
+                _h = pd.read_csv(_led)
+                _h["dt"] = pd.to_datetime(_h["dt"])
+                _h = _h[_h["actual_mw"].notna() & (_h["actual_mw"] > 0)].copy()
+                _today = pd.Timestamp.now().normalize()
+                _h = _h[_h["dt"] < _today]
+                _h = _h[_h["dt"] >= _today - pd.Timedelta(days=21)]
+                _ndays = _h["dt"].dt.normalize().nunique()
+                if _ndays >= 5:
+                    _h["res"] = _h["pred_mw"] - _h["actual_mw"]
+                    _med = _h.groupby(_h["dt"].dt.hour)["res"].median()
+                    _live = pd.Series([float(_med.get(h, 0.0)) for h in tgt.hour],
+                                      index=tgt, dtype=float).clip(-1500, 1500)
+                    p = p - _live
+                    print(f"[morning] CANLI bias ({_ndays} gun): ort {_live.mean():+.0f} MW "
+                          f"(-> {p.mean():,.0f})")
+                else:
+                    print(f"[morning] canli bias atlandi ({_ndays} gun < 5)")
+        except Exception as ex:
+            print(f"[morning] UYARI: canli bias ({str(ex)[:60]}) — atlandi")
+
     out = pd.DataFrame({"datetime": tgt, "pred_mw": p.values})
     out["pred_raw_mw"] = p_raw.values          # bias duzeltmesi oncesi (canli kiyas icin)
 

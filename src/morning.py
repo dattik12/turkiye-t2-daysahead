@@ -119,10 +119,10 @@ def build_features(y: pd.Series, wnat: pd.DataFrame, target_idx: pd.DatetimeInde
     r24max = y.rolling(24, min_periods=24).max()
     r168 = y.rolling(168, min_periods=168).mean()
     r9 = y.rolling(9, min_periods=9).mean()
-    F["roll24_at_anchor"] = r24.reindex(anchor).to_numpy()
-    F["roll24max_at_anchor"] = r24max.reindex(anchor).to_numpy()
-    F["roll168_at_anchor"] = r168.reindex(anchor).to_numpy()
-    F["roll9_today"] = r9.reindex(anchor).to_numpy()   # bugun 00-08 ortalamasi
+    F["roll24_at_anchor"] = r24.reindex(anchor, method="ffill").to_numpy()
+    F["roll24max_at_anchor"] = r24max.reindex(anchor, method="ffill").to_numpy()
+    F["roll168_at_anchor"] = r168.reindex(anchor, method="ffill").to_numpy()
+    F["roll9_today"] = r9.reindex(anchor, method="ffill").to_numpy()   # son bilinen saat
 
     # --- gunluk ozetler (dun / onceden) ---
     g = y.groupby(y.index.normalize())

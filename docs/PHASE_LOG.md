@@ -586,3 +586,53 @@ MLP_SEEDS, generator seed=7).
 ### Kalan risk
 Open-Meteo kotasi. Ama artik SESSIZ degil: kontrat yazilamazsa
 `LAST_FAILURE.txt`'e `[ptf] BASARISIZ rc=N` dusuyor.
+
+---
+
+## OLAY — SABAH KOSUSU HER GUN KOR GIDIYORDU (2026-11-12)
+
+### Belirti
+Canli 8 gunun 8'inde de DUSUK tahmin. Ortalama bias -1.371 MW. WAPE 3,18%
+(backtest 1,67%). TEIAS 1,62% ile kiyas: 2 kat geride.
+
+### Kok neden (olculdu, tahmin degil)
+`build_features` anchor'i **D 08:00** kabul ediyor. Ama sabah 09:00 kosusunda
+tuketim verisi **07:00'de** bitiyor (veri gecikmesi). 08:00 satiri olmadigi icin:
+
+```
+F["roll24_at_anchor"]  = r24.reindex(anchor)   -> NaN  (24/24 satir)
+F["roll24max_at_anchor"]                        -> NaN
+F["roll168_at_anchor"]                          -> NaN
+F["roll9_today"]                                -> NaN
+```
+
+Model egitimde bu uc ozelligi HEP DOLU gordu. Serve'te NaN gelince:
+- LGBM varsayilan dala gidiyor
+- MLP (agirlik %0,70) `nan_to_num` ile 0'a ceviriyor = "ortalama seviye"
+-> tahmin notrlesiyor, o gunun talep seviyesi KAYBOLUYOR.
+
+### Olcum (ayni model, sadece y'nin ucu farkli)
+| | Ortalama tahmin |
+|---|---|
+| y kesik (10.11 07:00, uretim gibi) | 39.972 MW |
+| y tam | 41.742 MW |
+| **FARK** | **+1.770 MW** |
+
+### Fix
+`r24.reindex(anchor)` -> `r24.reindex(anchor, method="ffill")` (4 ozellik).
+08:00 yoksa son bilinen saat (07:00) kullanilir. Sizinti degil.
+
+### Fix sonrasi
+| | Once | Sonra |
+|---|---|---|
+| roll24 NaN | 24 | **0** |
+| roll9 NaN | 24 | **0** |
+| roll168 NaN | 24 | **0** |
+| uretim-test farki | 1.770 MW | **242 MW** |
+
+11 Kasim tahmini 39.732 -> ~41.500 (gercek 42.584). WAPE ~%6,11 -> ~%2,0.
+
+### Ders
+Backtest `y` tam oldugu icin bu hata HIC gorunmedi. "Backtest 1,67 diyor ama
+canli 6 veriyor" sorusunun cevabi: **serve aninda 3 ozellik NaN gidiyordu.**
+Her yeni ozellik icin "serve aninda dolu mu?" testi gerekli.
