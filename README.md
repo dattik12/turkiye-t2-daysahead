@@ -30,7 +30,7 @@ Contract Invariants:
 
 > **Freshness:** evening run (~17:00 TSİ) is the production refresh; morning run (~09:30 TSİ) refreshes the IFS 00z input. `scripts/check_ptf_latest.py` fails fast on stale/invalid data — a red check means do NOT consume.
 
-> **Horizon convention:** `T` = last fully completed settlement day (the decision day). Each run publishes exactly 48 hours anchored to `T`: **T+1 = current day, T+2 = next day** — never beyond. Archive snapshots carry `T`'s date in their filename.
+> **Horizon convention:** karar anı **D** (bugün) 09:00. Ürün **48 saat**: **T+1 = yarın**, **T+2 = öbür gün**. Dosya adı hedef tarihi taşır (`yarin_YYYY-MM-DD.parquet` = o günün tahmini).
 
 ---
 
@@ -38,12 +38,16 @@ Contract Invariants:
 
 Production-grade verified metrics against official system operators:
 
-| Component | Architecture / Method | Benchmark | Production Metric |
+| Component | Architecture / Method | Benchmark | Measured (canlı-eşdeğer, 365 gün) |
 | --- | --- | --- | --- |
-| **Demand (Load)** | v4.5 LightGBM + Gated Regime MoE (ECMWF IFS) | TEİAŞ Plan (%3.01) | **T+1 %1.38 / T+2 %2.11** *(30-day A/B)* |
-| **Solar (GES)** | 27.4 GW ETKB cap, PR=0.921, Zenith night mask | 66 Licensed Plants | **r = 0.97 shape corr** *(Ağu'26 336h; gündüz 0.95 — 14 Eki'26 "önceki saat" hizası düzeltmesi sonrası; öncesi 0.88)* |
-| **Wind (RES)** | 7-Hub NNLS spatial weights + Dual-LGBM | RİTM Forecast (%9.57) | **%9.22 MAPE** *(Spread-blend)* |
-| **Long-Term** | 597 Decision Days Backtest (14,280 points) | TEİAŞ Plan (%3.01) | **T+1 %1.68 / T+2 %2.26** *(597-day)* |
+| **Demand (Load)** | LightGBM + CatBoost + MLP ensemble, per-horizon anchored | TEİAŞ Plan (8 gün: %1.62) | **T+1 %1.66 / T+2 %1.82** — son 90 gün **%1.51 / %1.66** |
+| **Solar (GES)** | Multi-NWP (IFS+GFS+ICON), GES kurulu güç ağırlıklı | persistence %17.6 | **gündüz T+1 %10.76 / T+2 %10.86** (nMAE 109 MW) |
+| **Wind (RES)** | Multi-NWP 100m, 10 il, 3 model | tek-NWP %17.8 | **T+1 %15.53 / T+2 %15.63** (nMAE 711/716 MW) |
+
+> Ölçüm protokolü: karar anı **D 09:00**, cutoff **D 08:00**, hedef saat `h` için
+> minimum lag `h+16` (T+1) / `h+40` (T+2). Canlı-eşdeğer ölçümde `y` karar günü
+> 07:00'de kesilir (gerçek sabah koşusu gibi). Eski "T+1 %1.38 / rüzgar %9.22"
+> rakamları geçersizdir — sızıntı ve yanlış konfigürasyonla ölçülmüştü.
 
 ---
 
