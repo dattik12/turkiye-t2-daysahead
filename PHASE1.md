@@ -118,6 +118,45 @@ Durum: **çekim sürüyor** (rüzgar 10 il × 23 ay × 5 değişken ayrı istek;
 
 Her il 25.200 saat (2024-01-01 → 2026-11-15).
 
+### P1.2-A · Validasyon (rüzgar, güneş) — İLK TUR
+
+| Kontrol | Rüzgar | Güneş |
+|---|---|---|
+| Parquet dosyası | 115 (120 beklenen) | 96 ✅ |
+| Değişken bazında doluluk | %94,7 – 96,7 | ışınım %93-98 |
+| **Model bazında doluluk** | **%75,6 / 77,0 / 77,0** | ecmwf %93,7 |
+| Boş ay hücresi | 724 – 804 | — |
+| Duplicate (il başına) | **YOK** | **YOK** |
+| Duplicate (iller arası) | Normal — aynı saat 10 ilde birden var, hata değil | aynı |
+
+**Yetersizler:**
+- `cloud_cover` **%12,2** — ikinci güneş çekimi kota dolduğu için yarıda kaldı (`[QUOTA] Istemci kotalari dolu`)
+- Rüzgar model bazında %75-77 → 19-40 ay hücresi boş
+- 2024-03 dönemi tüm illerde %18,5 NaN (API arşiv boşluğu)
+
+**Yeniden çekim:** kota penceresi yenilendikten sonra tek süreçle (paralel DEĞİL — ilk denemede iki süreç kotayı çakıştırdı) tekrar koşuluyor. Idempotent: aynı dosya yolu üzerine yazıyor.
+
+### P1.2-C · Arşivin kaynağı — kesin
+
+`scripts/pull_multinwp.py:18` → `historical-forecast-api.open-meteo.com`
+
+Eşleşme testi (İzmir, wind_speed_100m, 1.728 saat):
+
+| Aday | Ortalama fark | Birebir |
+|---|---|---|
+| previous-runs **current** | 3,177 | 2,1% |
+| historical-forecast **default** | 3,177 | 2,1% |
+| previous_day1 | 3,356 | 2,7% |
+| previous_day2 | 3,619 | 1,4% |
+
+İki bulgu:
+1. `historical-forecast default` ≡ `previous-runs current` → **en kısa lead** → sızıntı.
+2. **Arşiv tekrar üretilemez** — aynı sorgu bugün 3,18 km/h farklı dönüyor. API geçmiş saatleri sonraki çalıştırmalarla revize ediyor. Yani arşiv "o gün ne biliniyordu"yu değil, "çekim anında en iyi ne varsa"yı tutuyor.
+
+### P1.2-B · `cloud_cover_low/mid/high` — model başına test
+
+Üç modelde de **%0 doluluk**. Bu değişkenler Previous Runs API'de mevcut değil. Toplam `cloud_cover` (model başına %100) kullanılacak.
+
 ---
 
 ## P1.3 — HONEST BASELINE
