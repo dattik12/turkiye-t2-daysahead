@@ -159,9 +159,37 @@ Eşleşme testi (İzmir, wind_speed_100m, 1.728 saat):
 
 ---
 
-## P1.3 — HONEST BASELINE
+## P1.3 — HONEST BASELINE (RÜZGAR) · İLK SONUÇ
 
-Bekliyor (P1.2 çekimi bitince).
+**Yöntem:** `wind_mnwp.load_multi()` monkey-patch edildi; arşiv yerine `data/weather/honest/wind` okunuyor, `wind_speed_100m_previous_day{HZ}_{model}`. **Başka hiçbir şey değişmedi** — `SHIFT_H`, lag maskeleri, `TRAIN_D=365`, `STEP_D=7`, feature seti, LGBM parametreleri aynı.
+
+| Ufuk | Sızıntılı arşiv | **Honest (previous_dayN)** | Eval saat |
+|---|---|---|---|
+| **T+1** | %15,53 (nMAE 711) | **%14,63** (nMAE 726) | 12.696 |
+| **T+2** | %15,63 (nMAE 716) | **%14,98** (nMAE 746) | 12.624 |
+
+Bias: T+1 **+45 MW**, T+2 **+33 MW** (sızıntılıda −22 / −23).
+
+### ⚠️ Bu karşılaştırma HENÜZ eşleştirilmiş değil
+
+Değerlendirme saatleri farklı: sızıntılı 21.792 saat, honest 12.696 saat (arşiv %75-77 dolu). Aynı saatler üzerinde koşulmadan "honest daha iyi" hükmü verilemez → **AÇIK SORULAR #7**.
+
+### Yine de sürpriz ve önemli
+
+Beklenti honest'ın **daha kötü** çıkmasıydı (uzun lead). Tersi oldu. Olası açıklamalar (ölçülmedi):
+1. **Eşleştirilmemiş pencere** — honest'ın boş saatleri zor saatler olabilir, kolay saatler kalmış olabilir.
+2. **Arşiv tutarsızlığı** — `historical-forecast-api` her saati farklı çalıştırmadan döndürüyor → seride süreksizlik. Honest `previous_day1` tek bir vintage → daha pürüzsüz.
+3. Her ikisi birden.
+
+İkinci açıklama doğruysa, mevcut üretim rüzgar modeli **hatalı veri kaynağıyla** çalışıyor demektir — lead avantajı değil, gürültü taşıyor. Bu, P1.3'ün asıl kazancı olabilir.
+
+### Sonraki adım (yarın)
+
+1. Arşiv boşluklarını doldur (kota)
+2. **Eşleştirilmiş karşılaştırma**: ortak saatlerde eski vs honest
+3. OOF tahminlerini parquet'e yaz (DM testi için)
+4. RİTM tek / ML tek / 0.70-0.30 blend / en iyi sabit ağırlık (T+1, honest ML ile)
+5. Güneş için aynısı (`phase1_solar_honest.py` — henüz yazılmadı, `cloud_cover` %12 olduğu için bloke)
 
 ---
 
